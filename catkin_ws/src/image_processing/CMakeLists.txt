@@ -3,10 +3,10 @@ project(image_processing)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  std_msgs
-  sensor_msgs
-  cucumber_msgs
+	roscpp
+	std_msgs
+	sensor_msgs
+	cucumber_msgs
 )
 
 ################################################
@@ -33,7 +33,7 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 # include_directories(include)
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+	${catkin_INCLUDE_DIRS}
 )
 
 add_executable(cVis src/cVis/node_cVis.cpp)
@@ -43,6 +43,8 @@ target_link_libraries(cVis
 add_dependencies(cVis
 	cucumber_msgs_generate_messages_cpp
 )
+
+
 
 add_executable(IdCB src/IdCB/node_IdCB.cpp)
 target_link_libraries(IdCB

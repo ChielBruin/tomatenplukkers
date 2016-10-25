@@ -16,6 +16,18 @@ class CucumberContainer {
 
  public:
 	/**
+	 * Constructor from a cucumber_msgs::Cucumber message.
+	 */
+	CucumberContainer(cucumber_msgs::Cucumber msg) {
+		this->x = msg.stem_position.x;
+		this->y = msg.stem_position.y;
+		this->z = msg.stem_position.z;
+		this->width = msg.width;
+		this->height = msg.height;
+		this->curvature = msg.curvature;
+	}
+
+	/**
 	 * Constructor for a 2D instance of the container object.
 	 */
 	CucumberContainer(float x, float y, float width, float height, float curvature) {
