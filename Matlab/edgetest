@@ -1,0 +1,3 @@
+img_raw  = imread(imagePath);
+img_edges = edge(img_raw);
+imagesc(img_edges);

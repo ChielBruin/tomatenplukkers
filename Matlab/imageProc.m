@@ -1,11 +1,11 @@
 %% Process the specified image to recognize cucumbers.
 %  A preview can be shown with all the intermediate images.
 function [image] = imageProc(imagePath, preview)    
-    goodMu = [.5, .2, .1];
-    goodSigma = [.05, .1, .01];
+    goodMu = [0.5410, 0.5467, 0.5282];
+    goodSigma = [0.1844, 0.1934, 0.1918];
     
-    badMu = [.9, .6, .5];
-    badSigma = [.05, .1, .01];
+    badMu = [0.4314, 0.4523, 0.4665];
+    badSigma = [0.1440, 0.1421, 0.1427];
     
     image = customImageProc(imagePath, goodMu, goodSigma, badMu, badSigma, preview);
 end
@@ -52,11 +52,13 @@ function image = decisionRule(values, goodMu, goodSigma, badMu, badSigma)
 end
 
 function showPreview(image_raw, image_pure, image_drule)
-    subplot(3, 3, 2);
+    subplot(4, 3, 1);
     imagesc(image_raw);
     image_r = image_raw(:, : ,1);
     image_g = image_raw(:, : ,2);
 	image_b = image_raw(:, : ,3);
+    
+    subplot(4, 3, 2);
     
     image_size = size(image_r);
     z = zeros(image_size);
@@ -84,4 +86,7 @@ function showPreview(image_raw, image_pure, image_drule)
     imagesc(cat(3,z,image_drule(:, : ,2),z));
     subplot(4, 3, 12);
     imagesc(cat(3,z,z,image_drule(:, : ,3)));
+    
+    subplot(4, 3, 3);
+    imagesc(image_drule);
 end
