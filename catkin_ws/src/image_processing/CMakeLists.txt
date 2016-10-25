@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
   cucumber_msgs
 )
 
@@ -133,6 +134,11 @@ include_directories(
 
 add_executable(cVis src/cVis/node_cVis.cpp)
 target_link_libraries(cVis
+	${catkin_LIBRARIES}
+)
+
+add_executable(IdCB src/IdCB/node_IdCB.cpp)
+target_link_libraries(IdCB
 	${catkin_LIBRARIES}
 )
 
