@@ -40,10 +40,16 @@ add_executable(cVis src/cVis/node_cVis.cpp)
 target_link_libraries(cVis
 	${catkin_LIBRARIES}
 )
+add_dependencies(cVis
+	cucumber_msgs_generate_messages_cpp
+)
 
 add_executable(IdCB src/IdCB/node_IdCB.cpp)
 target_link_libraries(IdCB
 	${catkin_LIBRARIES}
+)
+add_dependencies(IdCB
+	cucumber_msgs_generate_messages_cpp
 )
 
 #############
