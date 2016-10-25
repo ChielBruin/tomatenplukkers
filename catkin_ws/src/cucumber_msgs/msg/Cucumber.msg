@@ -18,5 +18,5 @@ float32 height
 float32 curvature
 
 # Possible dimensions
-byte 2D=2
-byte 3D=2
+byte DIM_2D=2
+byte DIM_3D=2
