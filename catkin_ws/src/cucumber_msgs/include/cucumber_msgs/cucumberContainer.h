@@ -1,5 +1,5 @@
-#ifndef CucumberContainer_C
-#define CucumberContainer_C
+#ifndef CucumberContainer_H
+#define CucumberContainer_H
 
 #include "cucumber_msgs/Cucumber.h"
 
