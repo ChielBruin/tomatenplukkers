@@ -3,9 +3,9 @@ project(cucumber_msgs)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
-  std_msgs
-  message_generation
+	geometry_msgs
+	std_msgs
+	message_generation
 )
 
 ################################################
@@ -14,14 +14,14 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Generate messages in the 'msg' folder
 add_message_files(
-  FILES
-  Cucumber.msg
+	FILES
+	Cucumber.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
-  FILES
-  HarvestAction.srv
+	FILES
+	HarvestAction.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -45,7 +45,7 @@ catkin_package(
 ###########
 
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+	${catkin_INCLUDE_DIRS}
 )
 
 #############
