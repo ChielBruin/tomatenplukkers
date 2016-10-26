@@ -15,7 +15,7 @@ sensor_msgs::PointCloud2 pointCloud;
  */
 CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, sensor_msgs::PointCloud2 pointcloud) {
 	CucumberContainer tmp = CucumberContainer(in.stem_position.x, in.stem_position.y, in.width, in.height, in.curvature);
-	if(camera = CAM_LEFT) {
+	if(camera == CAM_LEFT) {
 		return tmp;
 	} else {
 		return tmp;
