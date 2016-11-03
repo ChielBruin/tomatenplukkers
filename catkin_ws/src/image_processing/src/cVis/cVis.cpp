@@ -10,7 +10,7 @@
  * This is done by validation of the object class and certainty of the detection.
  */
 bool checkDetection(ros_faster_rcnn::Detection det) {
-	bool name = det.object.compare("Cucumber") == 0;
+	bool name = det.object_class.compare("Cucumber") == 0;
 	bool p = det.p > .8;
 	return name && p;
 }
