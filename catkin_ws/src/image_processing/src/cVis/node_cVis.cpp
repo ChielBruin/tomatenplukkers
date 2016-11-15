@@ -4,6 +4,7 @@
 #include "sensor_msgs/Image.h"
 #include "cucumber_msgs/Cucumber.h"
 #include "ros_faster_rcnn/Detection.h"
+#include "ros_faster_rcnn/DetectionArray.h"
 
 using namespace ros;
 
@@ -21,13 +22,14 @@ void imageCallback(const sensor_msgs::Image& image) {
 
 /**
  * Callback for receiving detections from the detection node
- * Parses the detected cucumbers toa cucumber message and publishes it.
+ * Parses the detected cucumbers to a cucumber message and publishes it.
  */
-void detectionCallback(const ros_faster_rcnn::Detection& det) {
-	if (! checkDetection(det)) return;
-	cucumber_msgs::Cucumber msg = processDetection(det).toMessage();
-	 msg.header = det.header;
-	cucumber_pub.publish(msg);
+void detectionCallback(const ros_faster_rcnn::DetectionArray& msg) {
+	for (int i = 0; i < msg.size; i++) {
+		ros_faster_rcnn::Detection d = msg.data[i];
+		if (! checkDetection(d)) continue;
+		cucumber_pub.publish(processDetection(d).toMessage());
+	}
 }
 
 /**
@@ -43,7 +45,7 @@ int main(int argc, char **argv) {
 	Subscriber image_sub = n.subscribe(SIDE + "/image_raw", 1000, imageCallback);
 	
 	rcnn_pub = n.advertise<sensor_msgs::Image>("rcnn/camera_raw", 20);
-	Subscriber detector_sub = n.subscribe("rcnn/detections", 1000, detectionCallback);
+	Subscriber detector_sub = n.subscribe("rcnn/res/array", 1000, detectionCallback);
 
 	spin();
 	return 0;
