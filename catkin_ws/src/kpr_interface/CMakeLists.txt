@@ -4,7 +4,6 @@ project(kpr_interface)
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
-	rospy
 	message_generation
 	std_msgs
 	diagnostic_msgs
