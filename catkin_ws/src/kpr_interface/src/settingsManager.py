@@ -35,7 +35,7 @@ def setSetting(msg) :
 	for i in range(msg.size):
 		data = msg.settings[i]
 		SETTINGS[data.key] = data.value
-		rospy.logdebug("[Settings manager] '%s' set to '%s'", data.key, data.value)
+		rospy.logdebug("Setting '%s' set to '%s'", data.key, data.value)
 	update()
 	
 def getSettings(req) :
@@ -57,10 +57,10 @@ if __name__ == '__main__':
 	get_srv = rospy.Service('/settings/get', GetSetting, lambda req: GetSettingResponse(getValue(req.setting)))
 	get_srv = rospy.Service('/settings/getAll', GetSettings, getSettings)
 	
-	rospy.loginfo('[Settings manager] started')
+	rospy.loginfo('started')
 	update()
 	rospy.spin()
-	rospy.loginfo('[Settings manager] stopped')
+	rospy.loginfo('stopped')
 	
 
 
