@@ -59,6 +59,9 @@ include_directories(
 catkin_install_python(PROGRAMS src/settingsManager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+catkin_install_python(PROGRAMS src/interface.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 #############
 ## Testing ##
 #############
