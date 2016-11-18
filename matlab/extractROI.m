@@ -5,33 +5,32 @@
 % -preview > Show the result when true
 function extractROI(table, path, preview)
     images = table.imageFilename;
-    m = size(table.Properties.VariableNames);
-    classes = m(2)-1;
+    tmp = size(table.Properties.VariableNames);
+    classes = tmp(2)-1;
     
     % For each image
     for i = 1:size(images)
         annotations = []; 
         % For each class
         for c = 1:classes
-            A = table{i, c+1};
+            data = table{i, c+1};
             
-            if iscell(A)    % Multiple boxes
-                a = reshape(cell2mat(A),[],4);
-                s = size(a);
-                t = zeros(s(1), 1);
-                for j = 1:s(1)
-                    t(j) = c;
+            if iscell(data)    % Multiple boxes
+                tmp = reshape(cell2mat(data),[],4);
+                tmpSize = size(tmp);
+                classCol = zeros(tmpSize(1), 1);
+                for j = 1:tmpSize(1)
+                    classCol(j) = c;
                 end
-                annotations = [annotations; [t a]];
+                annotations = [annotations; [classCol tmp]];
             else            % Single box
-                a = [c A];
-                annotations = [annotations; a];
+                annotations = [annotations; [c data]];
             end
         end
         
         % Write the results to a file
-        t = images(i);
-        image = t{1,1}(1:end-3);
+        tmp = images(i);
+        image = tmp{1,1}(1:end-3);
         
         file = [path '/' [image(find(image=='/',1,'last')+1:end) 'txt']];
         [f,r] = fopen(file, 'wt' );
