@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	sensor_msgs
 	cucumber_msgs
+	ros_faster_rcnn
 )
 
 ################################################
@@ -42,9 +43,8 @@ target_link_libraries(cVis
 )
 add_dependencies(cVis
 	cucumber_msgs_generate_messages_cpp
+	ros_faster_rcnn_generate_messages_cpp
 )
-
-
 
 add_executable(IdCB src/IdCB/node_IdCB.cpp)
 target_link_libraries(IdCB
