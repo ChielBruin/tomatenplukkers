@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package>
+	<name>cucumber_msgs</name>
+	<version>0.1.0</version>
+	<description>A package containing custom messages used in the 'Tomatenplukkers' project.</description>
+
+	<maintainer email="chielbruin@tele2.nl">Chiel Bruin</maintainer>
+	<author email="chielbruin@tele2.nl">Chiel Bruin</author>
+
+
+	<!-- One license tag required, multiple allowed, one license per tag -->
+	<!-- Commonly used license strings: -->
+	<!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+	<license>TODO</license>
+
+
+	<url type="repository">https://github.com/ChielBruin/tomatenplukkers</url>
+
+
+	<buildtool_depend>catkin</buildtool_depend>
+	<build_depend>geometry_msgs</build_depend>
+	<build_depend>std_msgs</build_depend>
+	<build_depend>message_generation</build_depend>
+
+	<run_depend>geometry_msgs</run_depend>
+	<run_depend>std_msgs</run_depend>
+	<run_depend>message_runtime</run_depend>
+
+	<export> </export>
+</package>
