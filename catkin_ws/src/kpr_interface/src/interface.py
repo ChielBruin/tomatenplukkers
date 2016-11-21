@@ -181,7 +181,7 @@ if __name__ == '__main__':
 	(logRoot, settingsRoot, imageRoot) = buildScreen(root)
 	
 	image_sub = rospy.Subscriber('/rcnn/res/full', DetectionFull, lambda msg: imageCallback(msg.image))
-	#target_sub = rospy.Subscriber('<TODO>', Cucumber, lambda msg: TARGET = msg)
+	target_sub = rospy.Subscriber('/target', Cucumber, lambda msg: TARGET = msg)
 	diagnostic_sub = rospy.Subscriber('/rosout', Log, lambda msg: LOG.append(msg))
 	settings_sub = rospy.Subscriber('/settings/update', SetSetting, settingsCallback)
 	
