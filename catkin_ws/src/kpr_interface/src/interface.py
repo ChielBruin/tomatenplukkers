@@ -1,17 +1,42 @@
 #!/usr/bin/python
 
 import rospy
-from Tkinter import Tk, Label
+import cv2
+import datetime
+
+from Tkinter import *
+from PIL import ImageTk, Image
 from kpr_interface.srv import GetSettings
 from kpr_interface.msg import SetSetting
 
+from diagnostic_msgs.msg import KeyValue
 from sensor_msgs.msg import Image
 from cucumber_msgs.msg import Cucumber
 from rosgraph_msgs.msg import Log
+from ros_faster_rcnn.msg import DetectionFull
 
 settings_pub = rospy.Publisher('/settings/set', SetSetting, queue_size = 10)
 
-def loadSettings():
+IMAGE = None
+
+DETECTION = []
+
+LOG = []
+LOG_COLORS = {
+	Log.DEBUG : 'blue',
+	Log.INFO  : 'black',
+	Log.WARN  : 'orange',
+	Log.ERROR : 'red',
+	Log.FATAL : 'purple'
+}
+
+SETTINGS = {}
+
+TARGET = None
+
+root = Tk()	
+
+def loadSettings(frame):
 	rospy.loginfo('Waiting for setting service...')
 	rospy.wait_for_service('settings/getAll')
 	try:
@@ -22,45 +47,131 @@ def loadSettings():
 			settings[setting.key] = setting.value
 		rospy.loginfo('Settings received')
 		
-		print settings
-		return settings
+		displaySettings(frame, settings)
 	except rospy.ServiceException, e:
 		rospy.logerror("Service call failed: %s", e)
-	
-def buildScreen(root, settings):
-	root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth(), root.winfo_screenheight()))
 
-	Label(root, text="Settings:").pack()
+def saveSettings(e):
+	msg = SetSetting()
+	msg.size = len(e)
+	data = []
+	map(lambda entry: data.append(KeyValue(entry, e[entry].get())), e)
+	msg.settings = data
+	settings_pub.publish(msg)
 	
-	for setting in settings:
-		Label(root, text="{}: {}".format(setting, settings[setting])).pack()
+def displaySettings(screen, settings):
+	screen.winfo_children()[1].destroy()
+	if (len(screen.winfo_children()) > 1):
+		screen.winfo_children()[1].destroy()
+	container = Frame(screen, width = 150)
+	container.pack()
+	entries = {}
+	for i, setting in enumerate(settings):
+		Label(container, text="{}:".format(setting)).grid(column = 0, row = i)
+		e = Entry(container)
+		e.insert(0, settings[setting])
+		e.grid(column = 1, row = i)
+		entries[setting] = e
+	Button(screen, text = 'save', command = lambda : saveSettings(entries)).pack()
+		
+def buildScreen(root):
+	width = root.winfo_screenwidth()
+	height = root.winfo_screenheight()
+	root.geometry("{0}x{1}+0+0".format(width, height))
+
+	# Create log frame
+	log = Frame(root)
+	log.grid(column = 0, row = 0)
+	Label(log, text="LOG").pack()
+	vsbar = Scrollbar(log)
+	vsbar.pack(side=RIGHT, fill=Y)
+	hsbar = Scrollbar(log, orient=HORIZONTAL)
+	hsbar.pack(side=BOTTOM, fill=X)
+	lbox = Listbox(log, width=50, height = 30, yscrollcommand=vsbar.set, xscrollcommand=hsbar.set)
+	lbox.pack(fill=None, expand=False)
+	lbox.pack_propagate(0)
+	vsbar.config(command=lbox.yview)
+	hsbar.config(command=lbox.xview)
 	
-def imageCallback(msg, root):
+	# Create settings frame
+	settings = Frame(root)
+	settings.grid(column=2, row = 0)	
+	Label(settings, text="Settings:").pack()
+	Frame(settings).pack() # settings container
+	
+	middle = Frame(root)
+	middle.grid(column=1, row = 0)
+	
+	# Create image label
+	imageContainer = Label(middle)
+	imageContainer.grid()
+
+	image = None #ImageTk.PhotoImage()
+	imageContainer.image = image
+	
+	return (lbox, settings, image)
+
+def settingsCallback(msg):
+	global SETTINGS		
+	for setting in msg.settings:
+		SETTINGS[setting.key] = setting.value
+	
+def updateImage(root):
+	global IMAGE, TARGET
+	#global newImage, newDetection, newTarget 
+	#if not (newImage or newDetection or newTarget):
+		#return
+	#newImage = False
+	#newDetection = False
+	#newTarget = False
 	a = 0
+
+def getTime(stamp) :
+	return datetime.datetime.fromtimestamp(
+        int(stamp.secs)
+    ).strftime('%H:%M:%S')
+
+def updateLog(root):
+	global LOG_COLORS, LOG
+	root.after(1000, updateLog, root)
+	if not LOG:
+		return
 	
-def targetCallback(msg, root):
-	a = 0
+	for msg in LOG:
+		tmp = '{} [{}] {}'.format(getTime(msg.header.stamp), msg.file, msg.msg)
+		root.insert(END, tmp)	# TODO colors LOG_COLORS[msg.level], wraplength = 400
+		root.itemconfig(END, {'fg': LOG_COLORS[msg.level]})
+	LOG = []
 	
-def detectionCallback(msg, root):
-	a = 0
+def updateSettings(root):
+	global SETTINGS
+	root.after(1000, updateSettings, root)
+	if not SETTINGS:
+		return
+	displaySettings(root, SETTINGS)
+	SETTINGS = []
 	
-def diagnosticCallback(msg, log):
-	log['text'] += '\n[{}] {}'.format(msg.file, msg.msg)
-	
+def detectionCallback(msg):
+	global IMAGE
+	IMAGE = msg
+    
 if __name__ == '__main__':
 	rospy.init_node('interface')
-	root = Tk()
+	(logRoot, settingsRoot, imageRoot) = buildScreen(root)
 	
-	settings = loadSettings()
-	image_sub = rospy.Subscriber('/left/image_raw', Image, lambda msg: imageCallback(msg, root))
-	#target_sub = rospy.Subscriber('<TODO>', Cucumber, lambda msg: targetCallback(msg, root))
-	detect_sub = rospy.Subscriber('/stereo/cucumber', Cucumber, lambda msg: detectionCallback(msg, root))
-	log = Label(root, text="Log:")
-	log.pack()
-	diagnostic_sub = rospy.Subscriber('/rosout', Log, lambda msg: diagnosticCallback(msg, log))
+	image_sub = rospy.Subscriber('/rcnn/res/full', DetectionFull, detectionCallback)
+	#target_sub = rospy.Subscriber('<TODO>', Cucumber, lambda msg: TARGET = msg)
+	diagnostic_sub = rospy.Subscriber('/rosout', Log, lambda msg: LOG.append(msg))
+	settings_sub = rospy.Subscriber('/settings/update', SetSetting, settingsCallback)
 	
-	buildScreen(root, settings)
 	rospy.loginfo('started')
-	# rospy.spin() is not needed in this case
+	
+	loadSettings(settingsRoot)
+	
+	root.after(500, updateImage, imageRoot)
+	root.after(1000, updateLog, logRoot)
+	root.after(1000, updateSettings, settingsRoot)
+	
 	root.mainloop()
+			
 	rospy.loginfo('stopped')
