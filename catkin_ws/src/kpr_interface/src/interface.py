@@ -62,12 +62,12 @@ def saveSettings(entries):
 	data = []
 	map(lambda e: data.append(KeyValue(e, entries[e].get())), entries) # convert settings to KeyValue messages
 	msg.settings = data
-	settings_pub.publish(msg)
-	
-	if settings_pub.get_num_connections() == 0:
-		rospy.logwarn("Settings manager is offline, settings are not saved")
-	else:
+	try:
+		rospy.wait_for_service('settings/getAll', timeout = 5)
 		rospy.loginfo("Settings saved")
+		settings_pub.publish(msg)
+	except:
+		rospy.logerr("Settings manager is offline, settings are not saved")		
 	
 # Displays a list of all settings on the screen
 # root: The node to display all settings on
@@ -213,7 +213,7 @@ def updateSettings(root):
 	if not SETTINGS:
 		return
 	displaySettings(root, SETTINGS)
-	SETTINGS = []
+	SETTINGS = {}
    
 # Main method
 # Starts all the ROS subscribers and the TKinter loop 
