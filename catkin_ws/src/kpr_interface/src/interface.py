@@ -3,9 +3,11 @@
 import rospy
 import cv2
 import datetime
+import os
 
 from Tkinter import *
-from PIL import ImageTk, Image
+from PIL import ImageTk
+import PIL.Image
 from cv_bridge import CvBridge, CvBridgeError
 
 from kpr_interface.srv import GetSettings
@@ -18,10 +20,8 @@ from ros_faster_rcnn.msg import DetectionFull
 
 settings_pub = rospy.Publisher('/settings/set', SetSetting, queue_size = 10)
 
-IMAGE = None
-DETECTION = []
+IMAGE = [False, None, None]
 SETTINGS = {}
-TARGET = None
 LOG = []
 LOG_COLORS = {
 	Log.DEBUG : 'blue',
@@ -115,14 +115,14 @@ def buildScreen(root):
 	middle = Frame(root)
 	middle.grid(column=1, row = 0)
 	
-	# Create image label
-	imageContainer = Label(middle)
-	imageContainer.grid()
+	# Create image canvas
+	canvas = Canvas(middle, width = 500, height = 400)
 
-	image = None #ImageTk.PhotoImage()
-	imageContainer.image = image
+	image = ImageTk.PhotoImage(PIL.Image.open(os.path.join(os.path.dirname(__file__), "logo.png")))
+	canvas.create_image(250, 200, image=image)
+	canvas.pack()
 	
-	return (lbox, settings, image)
+	return (lbox, settings, (image, canvas))
 
 # Callback for receiving updated settings
 # msg: A SetSettings message containing the new values
@@ -136,49 +136,56 @@ def settingsCallback(msg):
 # cv_bridge: A cv_bridge instance that is used to convert the image
 def imageCallback(img, cv_bridge):
 	global IMAGE
-	IMAGE = cv_bridge.imgmsg_to_cv2(img)
+	IMAGE[0] = True
+	IMAGE[1] = cv_bridge.imgmsg_to_cv2(img)
 
 # Callback for receiving a new target to display
 # img: The new target to display
 def targetCallback(msg):
-	global TARGET
-	TARGET = msg
+	global IMAGE
+	IMAGE[0] = True
+	IMAGE[2] = msg
 
 # Calculates the 2D position of the target from its location.
 # target: The target object
 # returns: The 2D pixel location of the target
 def calculateTarget(target):
 	# //TODO
-	return (target.stem_position.x, target.stem_position.y)
+	x = target.stem_position.x
+	y = target.stem_position.y
+	return (x-5, y-5, x+5, y+5)
 
 # Displays the target position.
 # position: The 2D position of the target in the image
 # root: The node to display the target on
-def displayTarget(position, root):
-	a = 0
-	# //TODO
+def displayTarget(position, canvas):
+	canvas.create_oval(position, fill='red')
 	
 # Displays the image with detections.
 # image: the image to display
 # root: The node to display the image on
-def displayImage(image, root):
-	a = 0
-	# //TODO
+def displayImage(image, canvas):
+	img = PIL.Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+	img = img.resize((500, 400), PIL.Image.ANTIALIAS)
+	tk_img = ImageTk.PhotoImage(img)
+	canvas.create_image(250,200,image=tk_img)
+	return tk_img
 	
 # Updates the displayed image and target.
 # root: The node to display the image on
-def updateImage(root):
-	global IMAGE, TARGET
-	if not (IMAGE or TARGET):
+def updateImage(root, canvas):
+	global IMAGE, imageRef
+	root.after(500, updateImage, root, canvas)
+	if not IMAGE[0]:
 		return
-	if TARGET:
-		targetpos = calculateTarget(TARGET)
-		displayTarget(targetpos, root)
-		TARGET = None
+	canvas.delete(ALL)
+	IMAGE[0] = False
 	
-	if IMAGE:
-		displayImage(IMAGE, root)
-		IMAGE = None
+	if IMAGE[1] is not None:
+		imageRef = displayImage(IMAGE[1], canvas)
+	if IMAGE[2] is not None:
+		targetpos = calculateTarget(IMAGE[2])
+		displayTarget(targetpos, canvas)
 
 # Updates the log display by adding the new log entries.
 # root: The node that must contain all entries
@@ -210,7 +217,7 @@ if __name__ == '__main__':
 	rospy.init_node('interface')
 	cv_bridge = CvBridge()
 	root = Tk()
-	(logRoot, settingsRoot, imageRoot) = buildScreen(root)
+	(logRoot, settingsRoot, (imageRef, imageRoot)) = buildScreen(root)
 	
 	image_sub = rospy.Subscriber('/rcnn/res/full', DetectionFull, lambda msg: imageCallback(msg.image, cv_bridge))
 	target_sub = rospy.Subscriber('/target', Cucumber, targetCallback)
@@ -221,7 +228,7 @@ if __name__ == '__main__':
 	
 	requestSettings(settingsRoot)
 	
-	root.after(500, updateImage, imageRoot)
+	root.after(500, updateImage, root, imageRoot)
 	root.after(1000, updateLog, logRoot)
 	root.after(1000, updateSettings, settingsRoot)
 	
