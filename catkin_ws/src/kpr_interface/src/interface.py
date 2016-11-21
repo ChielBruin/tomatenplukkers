@@ -6,9 +6,10 @@ import datetime
 
 from Tkinter import *
 from PIL import ImageTk, Image
+from cv_bridge import CvBridge, CvBridgeError
+
 from kpr_interface.srv import GetSettings
 from kpr_interface.msg import SetSetting
-
 from diagnostic_msgs.msg import KeyValue
 from sensor_msgs.msg import Image
 from cucumber_msgs.msg import Cucumber
@@ -131,22 +132,53 @@ def settingsCallback(msg):
 		SETTINGS[setting.key] = setting.value
 
 # Callback for receiving new images to display
-# img: The new ROS image to display
-def imageCallback(img):
+# img: The new CV image to display
+# cv_bridge: A cv_bridge instance that is used to convert the image
+def imageCallback(img, cv_bridge):
 	global IMAGE
-	IMAGE = img
+	IMAGE = cv_bridge.imgmsg_to_cv2(img)
+
+# Callback for receiving a new target to display
+# img: The new target to display
+def targetCallback(msg):
+	global TARGET
+	TARGET = msg
+
+# Calculates the 2D position of the target from its location.
+# target: The target object
+# returns: The 2D pixel location of the target
+def calculateTarget(target):
+	# //TODO
+	return (target.stem_position.x, target.stem_position.y)
+
+# Displays the target position.
+# position: The 2D position of the target in the image
+# root: The node to display the target on
+def displayTarget(position, root):
+	a = 0
+	# //TODO
+	
+# Displays the image with detections.
+# image: the image to display
+# root: The node to display the image on
+def displayImage(image, root):
+	a = 0
+	# //TODO
 	
 # Updates the displayed image and target.
 # root: The node to display the image on
 def updateImage(root):
 	global IMAGE, TARGET
-	#global newImage, newDetection, newTarget 
-	#if not (newImage or newDetection or newTarget):
-		#return
-	#newImage = False
-	#newDetection = False
-	#newTarget = False
-	a = 0
+	if not (IMAGE or TARGET):
+		return
+	if TARGET:
+		targetpos = calculateTarget(TARGET)
+		displayTarget(targetpos, root)
+		TARGET = None
+	
+	if IMAGE:
+		displayImage(IMAGE, root)
+		IMAGE = None
 
 # Updates the log display by adding the new log entries.
 # root: The node that must contain all entries
@@ -176,12 +208,12 @@ def updateSettings(root):
 # Starts all the ROS subscribers and the TKinter loop 
 if __name__ == '__main__':
 	rospy.init_node('interface')
-	
+	cv_bridge = CvBridge()
 	root = Tk()
 	(logRoot, settingsRoot, imageRoot) = buildScreen(root)
 	
-	image_sub = rospy.Subscriber('/rcnn/res/full', DetectionFull, lambda msg: imageCallback(msg.image))
-	target_sub = rospy.Subscriber('/target', Cucumber, lambda msg: TARGET = msg)
+	image_sub = rospy.Subscriber('/rcnn/res/full', DetectionFull, lambda msg: imageCallback(msg.image, cv_bridge))
+	target_sub = rospy.Subscriber('/target', Cucumber, targetCallback)
 	diagnostic_sub = rospy.Subscriber('/rosout', Log, lambda msg: LOG.append(msg))
 	settings_sub = rospy.Subscriber('/settings/update', SetSetting, settingsCallback)
 	
