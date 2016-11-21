@@ -1,0 +1,14 @@
+# The cucmber that needs to be harvested.
+cucumber_msgs/Cucumber cucumber
+
+# The desired dropoff location and rotation of the produce.
+geometry_msgs/Pose dropLocation
+---
+# The result of the harvest action.
+byte status
+
+# Possible status codes for the harvest process.
+byte OK = 0
+byte GRAB_ERR = 1
+byte CUTT_ERR = 2
+byte DROP_ERR = 3
