@@ -18,9 +18,9 @@ from ros_faster_rcnn.msg import DetectionFull
 settings_pub = rospy.Publisher('/settings/set', SetSetting, queue_size = 10)
 
 IMAGE = None
-
 DETECTION = []
-
+SETTINGS = {}
+TARGET = None
 LOG = []
 LOG_COLORS = {
 	Log.DEBUG : 'blue',
@@ -30,13 +30,15 @@ LOG_COLORS = {
 	Log.FATAL : 'purple'
 }
 
-SETTINGS = {}
-
-TARGET = None
-
-root = Tk()	
-
-def loadSettings(frame):
+# Converts a ROS timestamp to a readable string of the time
+# stamp: The ROS timestamp to convert
+# returns: A readable string of the timestamp
+def getTime(stamp) :
+	return datetime.datetime.fromtimestamp(int(stamp.secs)).strftime('%H:%M:%S')
+	
+# Requests settings from the settings manager and displays them.
+# root: The node to display the settings on
+def requestSettings(root):
 	rospy.loginfo('Waiting for setting service...')
 	rospy.wait_for_service('settings/getAll')
 	try:
@@ -47,23 +49,29 @@ def loadSettings(frame):
 			settings[setting.key] = setting.value
 		rospy.loginfo('Settings received')
 		
-		displaySettings(frame, settings)
+		displaySettings(root, settings)
 	except rospy.ServiceException, e:
 		rospy.logerror("Service call failed: %s", e)
 
-def saveSettings(e):
+# Saves settings for each entry in the list to the settings manager
+# entries: A dictionary with each setting mapped to the Entry that contains the setting
+def saveSettings(entries):
 	msg = SetSetting()
-	msg.size = len(e)
+	msg.size = len(entries)
 	data = []
-	map(lambda entry: data.append(KeyValue(entry, e[entry].get())), e)
+	map(lambda e: data.append(KeyValue(e, entries[e].get())), entries) # convert settings to KeyValue messages
 	msg.settings = data
 	settings_pub.publish(msg)
+	rospy.loginfo("Settings saved")
 	
-def displaySettings(screen, settings):
-	screen.winfo_children()[1].destroy()
-	if (len(screen.winfo_children()) > 1):
-		screen.winfo_children()[1].destroy()
-	container = Frame(screen, width = 150)
+# Displays a list of all settings on the screen
+# root: The node to display all settings on
+# settings: A dictionary with all settings to display
+def displaySettings(root, settings):
+	root.winfo_children()[1].destroy()			# Remove the old container
+	if (len(root.winfo_children()) > 1):
+		root.winfo_children()[1].destroy()		# Remove the save button if present
+	container = Frame(root, width = 150)
 	container.pack()
 	entries = {}
 	for i, setting in enumerate(settings):
@@ -72,8 +80,12 @@ def displaySettings(screen, settings):
 		e.insert(0, settings[setting])
 		e.grid(column = 1, row = i)
 		entries[setting] = e
-	Button(screen, text = 'save', command = lambda : saveSettings(entries)).pack()
 		
+	Button(root, text = 'save', command = lambda : saveSettings(entries)).pack()
+		
+# Build the initial screen with the root nodes for each display.
+# root: The node to display the interface on
+# returns: A triple containing the logger root, settings root and image root respectively
 def buildScreen(root):
 	width = root.winfo_screenwidth()
 	height = root.winfo_screenheight()
@@ -111,11 +123,21 @@ def buildScreen(root):
 	
 	return (lbox, settings, image)
 
+# Callback for receiving updated settings
+# msg: A SetSettings message containing the new values
 def settingsCallback(msg):
 	global SETTINGS		
 	for setting in msg.settings:
 		SETTINGS[setting.key] = setting.value
+
+# Callback for receiving new images to display
+# img: The new ROS image to display
+def imageCallback(img):
+	global IMAGE
+	IMAGE = img
 	
+# Updates the displayed image and target.
+# root: The node to display the image on
 def updateImage(root):
 	global IMAGE, TARGET
 	#global newImage, newDetection, newTarget 
@@ -126,11 +148,8 @@ def updateImage(root):
 	#newTarget = False
 	a = 0
 
-def getTime(stamp) :
-	return datetime.datetime.fromtimestamp(
-        int(stamp.secs)
-    ).strftime('%H:%M:%S')
-
+# Updates the log display by adding the new log entries.
+# root: The node that must contain all entries
 def updateLog(root):
 	global LOG_COLORS, LOG
 	root.after(1000, updateLog, root)
@@ -139,10 +158,12 @@ def updateLog(root):
 	
 	for msg in LOG:
 		tmp = '{} [{}] {}'.format(getTime(msg.header.stamp), msg.file, msg.msg)
-		root.insert(END, tmp)	# TODO colors LOG_COLORS[msg.level], wraplength = 400
-		root.itemconfig(END, {'fg': LOG_COLORS[msg.level]})
+		root.insert(END, tmp)
+		root.itemconfig(END, {'fg': LOG_COLORS[msg.level]})		# Set the color of the entry
 	LOG = []
 	
+# Updates the settings display
+# root: The node to display the settings on
 def updateSettings(root):
 	global SETTINGS
 	root.after(1000, updateSettings, root)
@@ -150,23 +171,23 @@ def updateSettings(root):
 		return
 	displaySettings(root, SETTINGS)
 	SETTINGS = []
-	
-def detectionCallback(msg):
-	global IMAGE
-	IMAGE = msg
-    
+   
+# Main method
+# Starts all the ROS subscribers and the TKinter loop 
 if __name__ == '__main__':
 	rospy.init_node('interface')
+	
+	root = Tk()
 	(logRoot, settingsRoot, imageRoot) = buildScreen(root)
 	
-	image_sub = rospy.Subscriber('/rcnn/res/full', DetectionFull, detectionCallback)
+	image_sub = rospy.Subscriber('/rcnn/res/full', DetectionFull, lambda msg: imageCallback(msg.image))
 	#target_sub = rospy.Subscriber('<TODO>', Cucumber, lambda msg: TARGET = msg)
 	diagnostic_sub = rospy.Subscriber('/rosout', Log, lambda msg: LOG.append(msg))
 	settings_sub = rospy.Subscriber('/settings/update', SetSetting, settingsCallback)
 	
 	rospy.loginfo('started')
 	
-	loadSettings(settingsRoot)
+	requestSettings(settingsRoot)
 	
 	root.after(500, updateImage, imageRoot)
 	root.after(1000, updateLog, logRoot)
