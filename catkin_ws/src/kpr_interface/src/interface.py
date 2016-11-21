@@ -63,7 +63,11 @@ def saveSettings(entries):
 	map(lambda e: data.append(KeyValue(e, entries[e].get())), entries) # convert settings to KeyValue messages
 	msg.settings = data
 	settings_pub.publish(msg)
-	rospy.loginfo("Settings saved")
+	
+	if settings_pub.get_num_connections() == 0:
+		rospy.logwarn("Settings manager is offline, settings are not saved")
+	else:
+		rospy.loginfo("Settings saved")
 	
 # Displays a list of all settings on the screen
 # root: The node to display all settings on
