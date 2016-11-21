@@ -37,7 +37,7 @@ def setSetting(msg) :
 	for i in range(msg.size):
 		data = msg.settings[i]
 		if (data.key == ''):
-			rospy.logwarn('Added a setting with an ampty key')
+			rospy.logwarn('Added a setting with an empty key')
 		SETTINGS[data.key] = data.value
 		rospy.logdebug("Setting '%s' set to '%s'", data.key, data.value)
 	update()
