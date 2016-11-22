@@ -224,6 +224,7 @@ if __name__ == '__main__':
 	(logRoot, settingsRoot, (imageRef, imageRoot)) = buildScreen(root)
 	
 	image_sub = rospy.Subscriber('/rcnn/res/full', DetectionFull, lambda msg: imageCallback(msg.image, cv_bridge))
+	#image_sub = rospy.Subscriber('/rcnn/image_raw', Image, lambda msg: imageCallback(msg, cv_bridge)) # Use this to use the imageLoader.py to test
 	target_sub = rospy.Subscriber('/target', Cucumber, targetCallback)
 	diagnostic_sub = rospy.Subscriber('/rosout', Log, lambda msg: LOG.append(msg))
 	settings_sub = rospy.Subscriber('/settings/update', SetSetting, settingsCallback)
