@@ -221,6 +221,7 @@ if __name__ == '__main__':
 	rospy.init_node('interface')
 	cv_bridge = CvBridge()
 	root = Tk()
+	root.wm_title("KasPR | Interface")
 	(logRoot, settingsRoot, (imageRef, imageRoot)) = buildScreen(root)
 	
 	image_sub = rospy.Subscriber('/rcnn/res/full', DetectionFull, lambda msg: imageCallback(msg.image, cv_bridge))
