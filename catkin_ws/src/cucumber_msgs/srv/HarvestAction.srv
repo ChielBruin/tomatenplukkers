@@ -10,5 +10,6 @@ byte status
 # Possible status codes for the harvest process.
 byte OK = 0
 byte GRAB_ERR = 1
-byte CUTT_ERR = 2
+# byte CUTT_ERR = 2 -- There is no sensor for cut detection.
 byte DROP_ERR = 3
+byte MOVE_ERR = 4

@@ -2,6 +2,7 @@
 #define CucumberContainer_H
 
 #include "cucumber_msgs/Cucumber.h"
+#include "geometry_msgs/Pose.h"
 
 /**
  * Container class that stores a cucumbers data.
@@ -64,6 +65,14 @@ class CucumberContainer {
 		 msg.height = height;
 		 msg.curvature = curvature;
 		return msg;		 
+	}
+
+	geometry_msgs::Pose createPose() {
+		geometry_msgs::Pose pose;
+		pose.position.x = x;
+		pose.position.y = y;
+		pose.position.z = z;
+		return pose;
 	}
 };
 #endif
