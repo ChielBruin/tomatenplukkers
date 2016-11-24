@@ -34,8 +34,14 @@ def setSetting(msg) :
 	if (msg.size == 0):
 		rospy.logwarn('Received setSetting with size = 0')
 		return
+	if (msg.size != len(msg.settings)):
+		rospy.logwarn('Received setSetting with size that is not equal to the actual size')
+		return
 	for i in range(msg.size):
 		data = msg.settings[i]
+		if(data.key not in SETTINGS):
+			rospy.logwarn("Received unknown setting '%s'", data.key)
+			return
 		if (data.key == ''):
 			rospy.logwarn('Added a setting with an empty key')
 		SETTINGS[data.key] = data.value
