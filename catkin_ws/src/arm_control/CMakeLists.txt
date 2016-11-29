@@ -4,11 +4,38 @@ project(arm_control)
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
-	std_msgs
-	geometry_msgs
 	cucumber_msgs
-	message_generation
+	geometry_msgs
+	
+#	moveit_fake_controller_manager
+#	moveit_planners_ompl
+#	moveit_ros_benchmarks
+#	moveit_ros_benchmarks_gui
+#	moveit_ros_control_interface
+#	moveit_ros_manipulation
+#	moveit_ros_move_group
+#	moveit_ros_perception
+#	moveit_ros_robot_interaction
+#	moveit_ros_visualization
+#	moveit_ros_warehouse
+#	moveit_setup_assistant
+#	moveit_simple_controller_manager
+
+#	std_msgs
+#	message_generation
+#	srdfdom
+#	geometric_shapes
+#	pluginlib
+#	cmake_modules
+#	moveit_ros_move_group
+	
+	moveit_core
+	moveit_ros_planning
+	moveit_ros_planning_interface
+	moveit_msgs
 )
+
+find_package(Boost REQUIRED system filesystem date_time thread)
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -23,6 +50,9 @@ catkin_package(
 #  LIBRARIES image_processing
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
+	CATKIN_DEPENDS
+		moveit_core
+		moveit_ros_planning_interface
 )
 
 ###########

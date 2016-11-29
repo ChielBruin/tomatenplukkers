@@ -1,3 +1,18 @@
 [submodule "catkin_ws/src/ros_faster_rcnn"]
 	path = catkin_ws/src/ros_faster_rcnn
 	url = https://github.com/ChielBruin/ros_faster_rcnn.git
+[submodule "catkin_ws/src/moveit"]
+	path = catkin_ws/src/moveit
+	url = https://github.com/ros-planning/moveit/
+	branch = indigo-devel
+[submodule "catkin_ws/src/srdfdom"]
+	path = catkin_ws/src/srdfdom
+	url = https://github.com/ros-planning/srdfdom
+	branch = indigo-devel
+[submodule "catkin_ws/src/moveit_msgs"]
+	path = catkin_ws/src/moveit_msgs
+	url = https://github.com/ros-planning/moveit_msgs
+	branch = indigo-devel
+[submodule "catkin_ws/src/moveit_resources"]
+	path = catkin_ws/src/moveit_resources
+	url = https://github.com/ros-planning/moveit_resources
