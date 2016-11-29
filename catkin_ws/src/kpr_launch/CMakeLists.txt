@@ -24,8 +24,6 @@ catkin_package()
 ## Build ##
 ###########
 
-roslaunch_add_file_check(robot.launch)
-
 #############
 ## Install ##
 #############]
