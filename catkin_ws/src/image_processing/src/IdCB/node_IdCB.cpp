@@ -24,7 +24,7 @@ void pointCloudCallback(const sensor_msgs::PointCloud2& msg) {
 
 int main(int argc, char **argv) {
 	init(argc, argv, "IdCB");
-	ROS_INFO("IdCB started");
+	ROS_INFO("Started");
 
 	NodeHandle n;
 	cucumber_pub = n.advertise<cucumber_msgs::Cucumber>("stereo/cucumber", 20);
@@ -33,5 +33,6 @@ int main(int argc, char **argv) {
 	Subscriber pointcloud_sub = n.subscribe("depth/points", 1000, pointCloudCallback);
 
 	spin();
+	ROS_INFO("Stopped");
 	return 0;
 }

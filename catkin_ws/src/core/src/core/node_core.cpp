@@ -17,7 +17,7 @@ void cucumberCallback(const cucumber_msgs::Cucumber msg) {
 
 int main(int argc, char **argv) {
 	init(argc, argv, "Core");
-	ROS_INFO("Core started");
+	ROS_INFO("Started");
 
 	NodeHandle n;
 	ServiceClient arm_controller = n.serviceClient<cucumber_msgs::HarvestAction>("target/srv");
@@ -39,6 +39,8 @@ int main(int argc, char **argv) {
 				//TODO: ERROR handling
 		}
 	}
+	
+	ROS_INFO("Stopped");
 	
 	return 0;
 }
