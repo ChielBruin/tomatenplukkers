@@ -3,7 +3,11 @@ project(kpr_launch)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
-	roscpp
+	roslaunch
+	kpr_interface
+	ros_faster_rcnn
+	core
+	image_processing
 )
 
 ################################################
@@ -20,13 +24,7 @@ catkin_package()
 ## Build ##
 ###########
 
-## Allow c++11
-set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
-
-# include_directories(include)
-include_directories(
-	${catkin_INCLUDE_DIRS}
-)
+roslaunch_add_file_check(robot.launch)
 
 #############
 ## Install ##

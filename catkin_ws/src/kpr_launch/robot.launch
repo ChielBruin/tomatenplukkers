@@ -1,5 +1,29 @@
-<!-- Launch all nodes that can be used to display sensor and module states -->
+<!-- Launch file that starts the robot -->
 <launch>
-	<node name="settingsManager" pkg="kpr_interface" type="settingsManager.py"/>
-	<node name="interface" pkg="kpr_interface" type="interface.py" required="true"/>
+	<arg name="cpu_mode" default="false"/>
+
+	<!-- Launch the interface -->
+	<group>
+		<node name="settingsManager" pkg="kpr_interface" type="settingsManager.py"/>
+		<node name="interface" pkg="kpr_interface" type="interface.py" required="true"/>
+	</group>
+
+	<!-- Launch image detection -->
+	<group if="$(arg cpu_mode)">
+		<node name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" args="--cpu"/>
+	</group>
+	<group unless="$(arg cpu_mode)">
+		<node name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py"/>
+	</group>
+
+	<!-- Launch moveIt! -->
+	<group>
+	</group>
+
+	<!-- Launch main nodes -->
+	<group>
+		<node name="CVis" pkg="image_processing" type="cVis"/>
+		<node name="IdCB" pkg="image_processing" type="IdCB"/>
+		<node name="core" pkg="core" type="core"/>
+	</group>
 </launch>
