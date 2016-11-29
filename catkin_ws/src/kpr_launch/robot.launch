@@ -1,0 +1,5 @@
+<!-- Launch all nodes that can be used to display sensor and module states -->
+<launch>
+	<node name="settingsManager" pkg="kpr_interface" type="settingsManager.py"/>
+	<node name="interface" pkg="kpr_interface" type="interface.py" required="true"/>
+</launch>

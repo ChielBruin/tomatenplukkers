@@ -1,0 +1,6 @@
+<!-- Launch all nodes that can be used to display sensor and module states -->
+<launch>
+	<node name="battery_display" pkg="acr_debug" type="battery_display.py" output="screen"/>
+	<node name="module_display" pkg="acr_debug" type="module_display.py" output="screen" launch-prefix="gnome-terminal --command"/>
+	<node name="ultrasonic_display" pkg="acr_debug" type="ultrasonic_display.py" output="screen" launch-prefix="gnome-terminal --command"/>
+</launch>
