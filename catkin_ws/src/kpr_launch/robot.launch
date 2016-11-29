@@ -1,11 +1,25 @@
 <!-- Launch file that starts the robot -->
 <launch>
 	<arg name="cpu_mode" default="false"/>
+	<arg name="testing" default="false"/>
 
 	<!-- Launch the interface -->
 	<group>
 		<node name="settingsManager" pkg="kpr_interface" type="settingsManager.py"/>
 		<node name="interface" pkg="kpr_interface" type="interface.py" required="true"/>
+	</group>
+
+	<!-- Launch the hardware -->
+	<group>
+		<!-- Launch hardware that is always needed -->
+	</group>
+
+	<group if="$(arg testing)"> 
+		<!-- launch hardware dummy nodes -->
+	</group>
+
+	<group unless="$(arg testing)"> 
+		<!-- launch actual hardware nodes -->
 	</group>
 
 	<!-- Launch image detection -->
