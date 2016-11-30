@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
 	sensor_msgs
 	cucumber_msgs
 	ros_faster_rcnn
+	stereo_msgs
 )
 
 ################################################
