@@ -23,12 +23,8 @@
 	</group>
 
 	<!-- Launch image detection -->
-	<group if="$(arg cpu_mode)">
-		<node name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" args="--cpu"/>
-	</group>
-	<group unless="$(arg cpu_mode)">
-		<node name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py"/>
-	</group>
+	<node if="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" args="--cpu"/>
+	<node unless="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" />
 
 	<!-- Launch moveIt! -->
 	<group>
