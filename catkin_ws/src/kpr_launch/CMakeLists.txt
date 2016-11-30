@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
 	ros_faster_rcnn
 	core
 	image_processing
+	arm_control
 )
 
 ################################################
