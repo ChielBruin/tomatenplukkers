@@ -54,7 +54,7 @@ bool moveArmTo(planning_interface::PlannerManagerPtr planningInstance, planning_
 }
 
 bool startGrip(CucumberContainer cucumber) {
-	//TODO Code to start the grip.
+	
 	return false;
 }
 

@@ -19,6 +19,8 @@
 
 using namespace ros;
 
+const std::string NODE_NAME = "Arm Control";
+
 planning_scene::PlanningScenePtr scene;
 planning_interface::PlannerManagerPtr planner;
 
@@ -91,14 +93,14 @@ void setupRos(NodeHandle n) {
 }
 
 int main(int argc, char **argv) {
-	init(argc, argv, "Arm control");
+	init(argc, argv, NODE_NAME);
 	ROS_INFO("Arm control started");
-	
+
 	NodeHandle n;
 	ServiceServer cucumberService = n.advertiseService("target/cucumber", getCucumber);
-	
+
 	setupRos(n);
-	
+
 	spin();
 	return 0;
 }

@@ -6,7 +6,12 @@ find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	cucumber_msgs
 	geometry_msgs
-	
+
+	moveit_core
+	moveit_ros_planning
+	moveit_ros_planning_interface
+	moveit_msgs
+
 #	moveit_fake_controller_manager
 #	moveit_planners_ompl
 #	moveit_ros_benchmarks
@@ -28,11 +33,6 @@ find_package(catkin REQUIRED COMPONENTS
 #	pluginlib
 #	cmake_modules
 #	moveit_ros_move_group
-	
-	moveit_core
-	moveit_ros_planning
-	moveit_ros_planning_interface
-	moveit_msgs
 )
 
 find_package(Boost REQUIRED system filesystem date_time thread)
