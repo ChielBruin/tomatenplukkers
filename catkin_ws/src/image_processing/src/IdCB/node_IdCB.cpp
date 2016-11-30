@@ -24,7 +24,7 @@ void disparityCallback(const stereo_msgs::DisparityImage& msg) {
 
 int main(int argc, char **argv) {
 	init(argc, argv, "IdCB");
-	ROS_INFO("IdCB started");
+	ROS_INFO("Started");
 
 	NodeHandle n;
 	cucumber_pub = n.advertise<cucumber_msgs::Cucumber>("stereo/cucumber", 20);
@@ -33,5 +33,6 @@ int main(int argc, char **argv) {
 	Subscriber disparity_sub = n.subscribe("/points2", 1000, disparityCallback);
 
 	spin();
+	ROS_INFO("Stopped");
 	return 0;
 }
