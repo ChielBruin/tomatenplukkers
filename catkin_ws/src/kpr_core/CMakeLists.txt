@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(core)
+project(kpr_core)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
