@@ -17,17 +17,22 @@ void cucumberCallback(const cucumber_msgs::Cucumber msg) {
 
 int main(int argc, char **argv) {
 	init(argc, argv, "Core");
-	ROS_INFO("Core started");
+	ROS_INFO("Started");
 
 	NodeHandle n;
 	ServiceClient arm_controller = n.serviceClient<cucumber_msgs::HarvestAction>("target/srv");
 	Publisher target_pub = n.advertise<cucumber_msgs::Cucumber>("target", 2);
 	Subscriber image_sub = n.subscribe("stereo/cucumber", 10, cucumberCallback);
 
+	Rate loop_rate(10.f);	// 10Hz
+	
 	while(ros::ok()) {
 		spinOnce();
 		
-		if (!hasNext()) continue;
+		if (!hasNext()) {
+			loop_rate.sleep();
+			continue;
+		}
 		
 		CucumberContainer c = pop();
 		cucumber_msgs::Cucumber msg = c.toMessage();
@@ -39,6 +44,8 @@ int main(int argc, char **argv) {
 				//TODO: ERROR handling
 		}
 	}
+	
+	ROS_INFO("Stopped");
 	
 	return 0;
 }
