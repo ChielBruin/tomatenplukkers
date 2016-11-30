@@ -99,6 +99,7 @@ before_script:
   - cd ~/catkin_ws
   - rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO
   # mark python files executable
+  - ls -AR
   - find -type f -wholename "./src/*/src/*.py" -exec chmod +x {} -v \;
 
 # Compile and test (fail if any step fails). If the CATKIN_OPTIONS file exists,
