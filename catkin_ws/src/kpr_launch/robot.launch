@@ -1,0 +1,39 @@
+<!-- Launch file that starts the robot -->
+<launch>
+	<arg name="cpu_mode" default="false"/>
+	<arg name="testing" default="false"/>
+
+	<!-- Launch the interface -->
+	<group>
+		<node name="settingsManager" pkg="kpr_interface" type="settingsManager.py"/>
+		<node name="interface" pkg="kpr_interface" type="interface.py" required="true"/>
+	</group>
+
+	<!-- Launch the hardware -->
+	<group>
+		<!-- Launch hardware that is always needed -->
+	</group>
+
+	<group if="$(arg testing)"> 
+		<!-- launch hardware dummy nodes -->
+	</group>
+
+	<group unless="$(arg testing)"> 
+		<!-- launch actual hardware nodes -->
+	</group>
+
+	<!-- Launch image detection -->
+	<node if="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" args="--cpu"/>
+	<node unless="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" />
+
+	<!-- Launch moveIt! -->
+	<group>
+	</group>
+
+	<!-- Launch main nodes -->
+	<group>
+		<node name="CVis" pkg="image_processing" type="cVis"/>
+		<node name="IdCB" pkg="image_processing" type="IdCB"/>
+		<node name="core" pkg="core" type="core"/>
+	</group>
+</launch>
