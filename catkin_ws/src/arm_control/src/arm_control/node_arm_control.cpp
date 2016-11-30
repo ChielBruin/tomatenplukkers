@@ -94,13 +94,13 @@ void setupRos(NodeHandle n) {
 
 int main(int argc, char **argv) {
 	init(argc, argv, NODE_NAME);
-	ROS_INFO("Arm control started");
-
+	ROS_INFO("Started");
 	NodeHandle n;
-	ServiceServer cucumberService = n.advertiseService("target/cucumber", getCucumber);
 
+	ServiceServer cucumberService = n.advertiseService("target/cucumber", getCucumber);
 	setupRos(n);
 
 	spin();
+	ROS_INFO("Stopped");
 	return 0;
 }
