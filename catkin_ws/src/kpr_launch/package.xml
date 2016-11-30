@@ -24,9 +24,9 @@
 	<run_depend>roslaunch</run_depend>
 	<run_depend>kpr_interface</run_depend>
 	<run_depend>ros_faster_rcnn</run_depend>
-	<run_depend>core</run_depend>
-	<run_depend>image_processing</run_depend>
-	<run_depend>arm_control</run_depend>
+	<run_depend>kpr_core</run_depend>
+	<run_depend>kpr_image_processing</run_depend>
+	<run_depend>kpr_arm_control</run_depend>
 
 
 	<export> </export>

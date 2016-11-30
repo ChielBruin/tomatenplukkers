@@ -5,10 +5,10 @@ project(kpr_launch)
 find_package(catkin REQUIRED COMPONENTS
 	roslaunch
 	kpr_interface
+	kpr_core
+	kpr_image_processing
+	kpr_arm_control
 	ros_faster_rcnn
-	core
-	image_processing
-	arm_control
 )
 
 ################################################

@@ -2,6 +2,7 @@
 <launch>
 	<arg name="cpu_mode" default="false"/>
 	<arg name="testing" default="false"/>
+	<arg name="enable_faster_rcnn" default="true"/>
 
 	<!-- Launch the interface -->
 	<group>
@@ -23,8 +24,10 @@
 	</group>
 
 	<!-- Launch image detection -->
-	<node if="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" args="--cpu"/>
-	<node unless="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" />
+	<group if="$(arg enable_faster_rcnn)">
+		<node if="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" args="--cpu"/>
+		<node unless="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" />
+	</group>
 
 	<!-- Launch moveIt! -->
 	<group>
@@ -34,8 +37,8 @@
 
 	<!-- Launch main nodes -->
 	<group>
-		<node name="CVis" pkg="image_processing" type="cVis"/>
-		<node name="IdCB" pkg="image_processing" type="IdCB"/>
-		<node name="core" pkg="core" type="core"/>
+		<node name="CVis" pkg="kpr_image_processing" type="cVis"/>
+		<node name="IdCB" pkg="kpr_image_processing" type="IdCB"/>
+		<node name="core" pkg="kpr_core" type="core"/>
 	</group>
 </launch>

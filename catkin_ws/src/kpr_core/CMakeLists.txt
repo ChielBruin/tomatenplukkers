@@ -1,41 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(arm_control)
+project(kpr_core)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
-	cucumber_msgs
+	std_msgs
 	geometry_msgs
-
-	moveit_core
-	moveit_ros_planning
-	moveit_ros_planning_interface
-	moveit_msgs
-
-#	moveit_fake_controller_manager
-#	moveit_planners_ompl
-#	moveit_ros_benchmarks
-#	moveit_ros_benchmarks_gui
-#	moveit_ros_control_interface
-#	moveit_ros_manipulation
-#	moveit_ros_move_group
-#	moveit_ros_perception
-#	moveit_ros_robot_interaction
-#	moveit_ros_visualization
-#	moveit_ros_warehouse
-#	moveit_setup_assistant
-#	moveit_simple_controller_manager
-
-#	std_msgs
-#	message_generation
-#	srdfdom
-#	geometric_shapes
-#	pluginlib
-#	cmake_modules
-#	moveit_ros_move_group
+	cucumber_msgs
 )
-
-find_package(Boost REQUIRED system filesystem date_time thread)
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -50,9 +22,6 @@ catkin_package(
 #  LIBRARIES image_processing
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
-	CATKIN_DEPENDS
-		moveit_core
-		moveit_ros_planning_interface
 )
 
 ###########
@@ -67,19 +36,11 @@ include_directories(
 	${catkin_INCLUDE_DIRS}
 )
 
-add_executable(arm_control src/arm_control/node_arm_control.cpp)
-target_link_libraries(arm_control
+add_executable(core src/core/node_core.cpp)
+target_link_libraries(core
 	${catkin_LIBRARIES}
 )
-add_dependencies(arm_control
-	cucumber_msgs_generate_messages_cpp
-)
-
-add_executable(gripper_control src/gripper_control/node_gripper_control.cpp)
-target_link_libraries(gripper_control
-	${catkin_LIBRARIES}
-)
-add_dependencies(gripper_control
+add_dependencies(core
 	cucumber_msgs_generate_messages_cpp
 )
 
