@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(image_processing)
+project(kpr_image_processing)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS

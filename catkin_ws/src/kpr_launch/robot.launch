@@ -35,8 +35,8 @@
 
 	<!-- Launch main nodes -->
 	<group>
-		<node name="CVis" pkg="image_processing" type="cVis"/>
-		<node name="IdCB" pkg="image_processing" type="IdCB"/>
-		<node name="core" pkg="core" type="core"/>
+		<node name="CVis" pkg="kpr_image_processing" type="cVis"/>
+		<node name="IdCB" pkg="kpr_image_processing" type="IdCB"/>
+		<node name="core" pkg="kpr_core" type="core"/>
 	</group>
 </launch>

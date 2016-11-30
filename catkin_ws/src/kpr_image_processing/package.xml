@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-	<name>image_processing</name>
+	<name>kpr_image_processing</name>
 	<version>0.0.1</version>
 	<description>A package containing image processing nodes used in the 'Tomatenplukkers' project.</description>
 
