@@ -103,7 +103,7 @@ before_script:
   - cd ~/catkin_ws/src
   - ls -ARH
   - cd ../
-  - find -H -type f -wholename "./src/*/src/*.py" -exec chmod +x {} -v \;
+  - find -L -type f -wholename "./src/*/src/*.py" -exec chmod +x {} -v \;
 
 # Compile and test (fail if any step fails). If the CATKIN_OPTIONS file exists,
 # use it as an argument to catkin_make, for example to blacklist certain
