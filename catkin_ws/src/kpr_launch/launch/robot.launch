@@ -11,6 +11,7 @@
 	<arg if="$(arg testing)" name="limited" default="false"/>
 	<arg if="$(arg testing)" name="min_payload"  default="0.0"/>
 	<arg if="$(arg testing)" name="max_payload"  default="10.0"/>
+	<arg if="$(arg testing)" name="max_velocity" default="10.0"/>
 
 	<!-- Launch the interface -->
 	<group>
@@ -23,7 +24,12 @@
 	<group if="$(arg testing)">
 		<!-- launch hardware dummy nodes -->
 		<node name="URsim" pkg="kpr_launch" type="URsim.sh" args="$(arg ursim)"/>
-		<node name="testing_ur_driver" pkg="ur_driver" type="driver.py" args="$(arg robot_ip) $(arg reverse_port)" respawn="true" respawn_delay="5" pass_all_args="true"/>
+		<node name="testing_ur_driver" pkg="ur_driver" type="driver.py" args="$(arg robot_ip) $(arg reverse_port)" respawn="true" respawn_delay="5">
+			<param name="min_payload" type="double" value="$(arg min_payload)"/>
+			<param name="max_payload" type="double" value="$(arg max_payload)"/>
+			<param name="max_velocity" type="double" value="$(arg max_velocity)"/>
+			
+		</node>
 		<node name="valves" pkg="kpr_testing" type="valves.py" output="screen" launch-prefix="gnome-terminal -x"/>
 	</group>
 
