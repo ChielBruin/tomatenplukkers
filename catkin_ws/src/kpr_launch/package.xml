@@ -26,6 +26,8 @@
 	<run_depend>ros_faster_rcnn</run_depend>
 	<run_depend>kpr_core</run_depend>
 	<run_depend>kpr_image_processing</run_depend>
+	<run_depend>ur_bringup</run_depend>
+	<run_depend>robot_state_publisher</run_depend>
 
 
 	<export> </export>
