@@ -1,8 +1,0 @@
-[submodule "https://github.com/ros-planning/moveit/"]
-	branch = indigo-devel
-[submodule "catkin_ws/src/moveit"]
-	branch = indigo-devel
-[submodule "catkin_ws/src/srfdom"]
-	branch = indigo-devel
-[submodule "catkin_ws/src/moveit_msgs"]
-	branch = indigo-devel

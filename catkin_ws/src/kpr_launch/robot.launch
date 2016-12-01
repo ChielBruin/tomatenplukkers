@@ -31,8 +31,8 @@
 
 	<!-- Launch moveIt! -->
 	<group>
-		<node name="armControl" pkg="arm_control" type="arm_control"/>
-		<node name="gripperControl" pkg="arm_control" type="gripper_control"/>
+		<node name="armControl" pkg="kpr_arm_control" type="arm_control"/>
+		<node name="gripperControl" pkg="kpr_arm_control" type="gripper_control"/>
 	</group>
 
 	<!-- Launch main nodes -->
