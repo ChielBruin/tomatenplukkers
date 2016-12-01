@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!-- Launch file that starts the robot -->
+<launch>
+	<arg name="cpu_mode" default="false"/>
+	<arg name="testing" default="false"/>
+	<arg name="enable_faster_rcnn" default="true"/> 
+	<arg name="robot_ip" default="127.0.0.1"/>
+
+	<arg if="$(arg testing)" name="ursim"/>
+	<arg if="$(arg testing)" name="reverse_port" default="50001"/>
+	<arg if="$(arg testing)" name="limited" default="false"/>
+	<arg if="$(arg testing)" name="min_payload"  default="0.0"/>
+	<arg if="$(arg testing)" name="max_payload"  default="10.0"/>
+	<arg if="$(arg testing)" name="max_velocity" default="10.0"/>
+
+	<!-- Launch the interface -->
+	<group>
+		<node name="settingsManager" pkg="kpr_interface" type="settingsManager.py"/>
+		<node name="interface" pkg="kpr_interface" type="interface.py" required="true"/>
+	</group>
+
+	<!-- Launch the hardware -->
+
+	<group if="$(arg testing)">
+		<!-- launch hardware dummy nodes -->
+		<node name="URsim" pkg="kpr_launch" type="URsim.sh" args="$(arg ursim)"/>
+		<node name="testing_ur_driver" pkg="ur_driver" type="driver.py" args="$(arg robot_ip) $(arg reverse_port)" respawn="true" respawn_delay="5">
+			<param name="min_payload" type="double" value="$(arg min_payload)"/>
+			<param name="max_payload" type="double" value="$(arg max_payload)"/>
+			<param name="max_velocity" type="double" value="$(arg max_velocity)"/>
+			
+		</node>
+		<node name="valves" pkg="kpr_testing" type="valves.py" output="screen" launch-prefix="gnome-terminal -x"/>
+	</group>
+
+	<group unless="$(arg testing)"> 
+		<!-- launch actual hardware nodes -->
+	</group>
+
+	<group>
+		<!-- Launch hardware that is always needed -->
+		<include file="$(find ur_bringup)/launch/ur5_bringup.launch"> 
+			<arg name="robot_ip" value="$(arg robot_ip)"/>
+		</include>
+	</group>
+
+	<!-- Launch image detection -->
+	<group if="$(arg enable_faster_rcnn)">
+		<node if="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" args="--cpu"/>
+		<node unless="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" />
+	</group>
+
+	<!-- Launch moveIt! -->
+	<group>
+	</group>
+
+	<!-- Launch main nodes -->
+	<group>
+		<node name="CVis" pkg="kpr_image_processing" type="cVis"/>
+		<node name="IdCB" pkg="kpr_image_processing" type="IdCB"/>
+		<node name="core" pkg="kpr_core" type="core"/>
+	</group>
+</launch>
