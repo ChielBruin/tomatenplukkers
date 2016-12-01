@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-	<name>image_processing</name>
+	<name>kpr_image_processing</name>
 	<version>0.0.1</version>
 	<description>A package containing image processing nodes used in the 'Tomatenplukkers' project.</description>
 
@@ -18,21 +18,21 @@
 
 
 	<buildtool_depend>catkin</buildtool_depend>
+	
 	<build_depend>geometry_msgs</build_depend>
 	<build_depend>std_msgs</build_depend>
 	<build_depend>sensor_msgs</build_depend>
 	<build_depend>roscpp</build_depend>
-
+	<build_depend>stereo_msgs</build_depend>
 	<build_depend>cucumber_msgs</build_depend>
 	<build_depend>ros_faster_rcnn</build_depend>
 	<build_depend>message_generation</build_depend>
-
 
 	<run_depend>geometry_msgs</run_depend>
 	<run_depend>std_msgs</run_depend>
 	<run_depend>sensor_msgs</run_depend>
 	<run_depend>roscpp</run_depend>
-
+	<run_depend>stereo_msgs</run_depend>
 	<run_depend>cucumber_msgs</run_depend>
 	<run_depend>ros_faster_rcnn</run_depend>
 	<run_depend>message_runtime</run_depend>
