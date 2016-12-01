@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!-- Launch file that starts the robot -->
 <launch>
 	<arg name="cpu_mode" default="false"/>
