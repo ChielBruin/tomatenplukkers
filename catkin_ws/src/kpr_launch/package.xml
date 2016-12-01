@@ -28,6 +28,8 @@
 	<run_depend>kpr_image_processing</run_depend>
 	<run_depend>ur_bringup</run_depend>
 	<run_depend>robot_state_publisher</run_depend>
+	<run_depend>kpr_testing</run_depend>
+	<run_depend>ur_driver</run_depend>
 
 
 	<export> </export>
