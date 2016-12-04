@@ -20,7 +20,6 @@
 	<buildtool_depend>catkin</buildtool_depend>
 	
 	<build_depend>roslaunch</build_depend>
-	<build_depend>roslaunch</build_depend>
 	<build_depend>kpr_interface</build_depend>
 	<build_depend>ros_faster_rcnn</build_depend>
 	<build_depend>kpr_core</build_depend>
