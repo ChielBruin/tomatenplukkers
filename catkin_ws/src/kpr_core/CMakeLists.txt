@@ -7,6 +7,8 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	geometry_msgs
 	cucumber_msgs
+	kpr_interface
+	diagnostic_msgs
 )
 
 ################################################
