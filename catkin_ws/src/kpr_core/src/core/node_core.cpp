@@ -15,11 +15,17 @@
 using namespace ros;
 using namespace std;
 
+/**
+ * Callback used for receiving new cucumbers.
+ */
 void cucumberCallback(const cucumber_msgs::Cucumber msg) {
 	CucumberContainer c = CucumberContainer(msg);
 	push_back(c);
 }
 
+/**
+ * Callback for receiving updates of the settings.
+ */
 void settingsCallback(const kpr_interface::SetSetting msg) {
 	map<string, string> settings = map<string, string>();
 	for (int i = 0; i < msg.size; i++) {
@@ -28,8 +34,13 @@ void settingsCallback(const kpr_interface::SetSetting msg) {
 	}
 }
 
-map<string, string> getSettings(NodeHandle n) {
-	ros::ServiceClient client = n.serviceClient<kpr_interface::GetSettings>("/settings/getAll");
+/**
+ * Get a forced update of the settings from the settings manager.
+ * Note: the returned data must be passed to setSettings() before it can be used.
+ * @param nh The nodehandle of this nodes instance.
+ */
+map<string, string> getSettings(NodeHandle nh) {
+	ros::ServiceClient client = nh.serviceClient<kpr_interface::GetSettings>("/settings/getAll");
 	kpr_interface::GetSettings srv;
 	if (client.call(srv)) {
 		map<string, string> settings = map<string, string>();
@@ -76,7 +87,6 @@ int main(int argc, char **argv) {
 		}
 	}
 	
-	ROS_INFO("Stopped");
-	
+	ROS_INFO("Stopped");	
 	return 0;
 }
