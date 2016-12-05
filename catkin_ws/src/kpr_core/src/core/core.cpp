@@ -10,7 +10,7 @@ std::map<std::string, std::string> settings;
 bool checkHarvestable(CucumberContainer c) {
 	float w = c.getWeight();
 	bool weightOK = w > stof(settings["minWeight"]) && w < stof(settings["maxWeight"]);
-	bool curvatureOK = c.getCurvature() < stof(settings["maxCurvature"]);
+	bool curvatureOK = c.getCurvature() <= stof(settings["maxCurvature"]);
 	return weightOK && curvatureOK;
 }
 
