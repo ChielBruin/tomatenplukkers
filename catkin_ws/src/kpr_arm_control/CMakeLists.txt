@@ -28,9 +28,6 @@ catkin_package(
 #  LIBRARIES image_processing
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
-	CATKIN_DEPENDS
-		moveit_core
-		moveit_ros_planning_interface
 )
 
 ###########
