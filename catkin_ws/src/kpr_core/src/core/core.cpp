@@ -39,3 +39,10 @@ CucumberContainer pop() {
 	queue.erase(queue.begin());				// pop
 	return c;
 }
+
+/**
+ * Set the current settings to the values specified by th given map.
+ */
+void setSettings(std::map<std::string, std::string> settings) {
+	
+}
