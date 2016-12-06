@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-	<name>core</name>
+	<name>kpr_core</name>
 	<version>0.0.1</version>
 	<description>A package containing the core behaviour nodes of the 'Tomatenplukkers' project.</description>
 

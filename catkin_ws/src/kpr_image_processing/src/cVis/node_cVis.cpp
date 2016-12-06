@@ -38,7 +38,7 @@ void detectionCallback(const ros_faster_rcnn::DetectionArray& msg) {
  */
 int main(int argc, char **argv) {
 	init(argc, argv, "cVis_" + SIDE);
-	ROS_INFO("cVis_%s started", SIDE.c_str());
+	ROS_INFO("Started");
 
 	NodeHandle n;
 	cucumber_pub = n.advertise<cucumber_msgs::Cucumber>(SIDE + "/cucumber", 20);
@@ -48,5 +48,7 @@ int main(int argc, char **argv) {
 	Subscriber detector_sub = n.subscribe("rcnn/res/array", 1000, detectionCallback);
 
 	spin();
+	
+	ROS_INFO("Stopped");
 	return 0;
 }

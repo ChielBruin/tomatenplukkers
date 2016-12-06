@@ -202,7 +202,10 @@ def updateLog(root):
 	for msg in LOG:
 		tmp = '{} [{}] {}'.format(getTime(msg.header.stamp), msg.file, msg.msg)
 		root.insert(END, tmp)
-		root.itemconfig(END, {'fg': LOG_COLORS[msg.level]})		# Set the color of the entry
+		if msg.level in LOG_COLORS:
+			root.itemconfig(END, {'fg': LOG_COLORS[msg.level]})		# Set the color of the entry
+		else:
+			rospy.logwarn("Unknown log level %d", msg.level)
 	LOG = []
 	
 # Updates the settings display
