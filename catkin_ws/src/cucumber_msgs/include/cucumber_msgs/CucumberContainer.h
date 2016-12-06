@@ -2,6 +2,7 @@
 #define CucumberContainer_H
 
 #include "cucumber_msgs/Cucumber.h"
+#include <math.h>
 
 /**
  * Container class that stores a cucumbers data.
@@ -64,6 +65,20 @@ class CucumberContainer {
 		 msg.height = height;
 		 msg.curvature = curvature;
 		return msg;		 
+	}
+	
+	/**
+	 * Get the weight of the cucumber in grams.
+	 */
+	float getWeight() {
+		return M_PI * (this->width*.5) * (this->width*.5) * this->height;
+	}
+	
+	/**
+	 * Get the curvature of the cucumber.
+	 */
+	float getCurvature() {
+		return this->curvature;
 	}
 };
 #endif
