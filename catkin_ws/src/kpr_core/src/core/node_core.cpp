@@ -65,6 +65,8 @@ int main(int argc, char **argv) {
 	Subscriber image_sub = n.subscribe("stereo/cucumber", 10, cucumberCallback);
 	Subscriber settings_sub = n.subscribe("settings/update", 10, settingsCallback);
 	
+	ROS_INFO("Connecting to the settings manager");
+	ros::service::waitForService("/settings/getAll");
 	setSettings(getSettings(n));
 
 	Rate loop_rate(10.f);	// 10Hz
