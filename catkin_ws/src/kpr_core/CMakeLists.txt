@@ -7,6 +7,8 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	geometry_msgs
 	cucumber_msgs
+	kpr_interface
+	diagnostic_msgs
 )
 
 ################################################
@@ -52,11 +54,8 @@ add_dependencies(core
 ## Testing ##
 #############
 
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_image_processing.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+catkin_add_gtest(core-test test/test_core.cpp)
+	target_link_libraries(core-test ${catkin_LIBRARIES})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
