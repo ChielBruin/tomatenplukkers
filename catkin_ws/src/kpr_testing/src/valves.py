@@ -105,7 +105,7 @@ def processKey(key, pub):
 def income():
 	try:
 		fun = int(raw_input("What is the fun? "))
-		if fun != 5 or fun != 6:
+		if fun != 5 and fun != 6:
 			display()
 			rospy.logerr("Fun nr not available")
 			return SetIOResponse(False)
