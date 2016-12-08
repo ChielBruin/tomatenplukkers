@@ -101,6 +101,8 @@ before_script:
   - rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO
   # mark python files executable
   - find -L -type f -wholename "./src/*/src/*.py" -exec chmod +x {} -v \;
+  # mark shell scripts in kpr packages executable
+  - find -L -type f -wholename "./src/kpr_*.sh" -exec chmod +x {} -v \;
 
 # Compile and test (fail if any step fails). If the CATKIN_OPTIONS file exists,
 # use it as an argument to catkin_make, for example to blacklist certain
