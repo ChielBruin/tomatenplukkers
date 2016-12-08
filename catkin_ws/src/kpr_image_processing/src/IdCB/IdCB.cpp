@@ -37,7 +37,7 @@ void setDisparityImage(stereo_msgs::DisparityImage newDisp) {
  * Returns a null-pointer when the disparity cannot be found.
  */
 stereo_msgs::DisparityImage getDisparityImage(ros::Time timestamp) {
-	//TODO: check if the map is sorted old > new for speed reasons.
+	//TODO: Check if the map is sorted old > new for speed reasons.
 	if (disparity.empty()) {
 		ROS_ERROR("The disparity image buffer is empty, that should not happen");
 		return stereo_msgs::DisparityImage();
