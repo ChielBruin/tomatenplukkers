@@ -176,16 +176,24 @@ def updateInputPinValues():
 #Checks if pin in dictionary
 	if pin not in pinStates:
 		rospy.logerr("Writing to unused pin")
-		return SetIOResponse(False)
+		return
 	print "writing to pin ", pin
 	state = float(raw_input("What is the state? "))
-#Send state to dictionary 
-	pinStates[pin][0] = "{0:.2f}".format(state)
 #Send fun to dictionary
 	if fun == 5: #fun
+		if (state != 0 and state != 1):
+			rospy.logerr("State value is %f, but must be either 0 or 1.", state)
+			return
 		pinStates[pin][1] = "Digital In"
 	else:
+		if (state < 0 or state > 1):
+			rospy.logerr("State value is %f, but must be between 0 and 1.", state)
+			return
 		pinStates[pin][1] = "Analog In"
+		
+#Send state to dictionary 
+	pinStates[pin][0] = "{0:.2f}".format(state)
+	
 	display()
 	return 
 
