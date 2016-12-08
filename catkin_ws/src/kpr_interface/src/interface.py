@@ -154,7 +154,7 @@ def targetCallback(msg):
 # target: The target object
 # returns: The 2D pixel location of the target
 def calculateTarget(target):
-	# //TODO
+	# TODO: Calculate the actual position
 	x = target.stem_position.x
 	y = target.stem_position.y
 	return (x-5, y-5, x+5, y+5)

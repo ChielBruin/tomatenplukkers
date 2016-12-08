@@ -120,3 +120,7 @@ script:
   # Run the tests, ensuring the path is set correctly.
   - source devel/setup.bash
   - catkin_make run_tests && catkin_make test
+
+after_script:
+  # Find all the //TODO and # TODO tags in the code
+  - grep --exclude-dir=libraries --include=\*.{h,c,hpp,cpp,py,sh} -rnw 'src/' -e "# TODO\|//TODO" --color=always  | tr -s \\t

@@ -19,7 +19,7 @@ bool checkDetection(ros_faster_rcnn::Detection det) {
  * Calculates the curvature of the detected cucumber.
  */
 float calculateCurvature(float width, float height) {
-	//TODO
+	//TODO: Calculate the curvature of the cucumber
 	return 0;
 }
 
