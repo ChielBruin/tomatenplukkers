@@ -79,18 +79,22 @@ def request(req):
 		pin = 'AO' + str(req.pin)
 	else:
 		help(request)
-		rospy.logerr("Not used fun number") ## CHANGE ERROR MESSAGE
+		rospy.logerr("%d is no valid fun value, only 1 (Digital Out) and 4 (Analog Out) allowed", req.fun)
 		return SetIOResponse(False)
 	if pin not in pinStates:
 		help(request)
 		rospy.logerr("Writing to unused pin")
 		return SetIOResponse(False)
 #Change dictionary "pinStates" with correct data
-	pinStates[pin][0] = "{0:.2f}".format(req.state)
 	if req.fun == 1:
 		pinStates[pin][1] = "Digital Out"
+		if (req.state != 0 and req.state != 1):
+			rospy.logerr("State value is %f, but must be either 0 or 1.", req.state)
 	else:
 		pinStates[pin][1] = "Analog Out"
+		if (req.state < 0 or req.state > 1):
+			rospy.logerr("State value is %f, but must be between 0 and 1.", req.state)
+	pinStates[pin][0] = "{0:.2f}".format(req.state)
 
 	display()
 	res = response	
