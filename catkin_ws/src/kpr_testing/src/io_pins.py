@@ -13,16 +13,14 @@ Check the status of I/O-pins
 \t-t to toggle service succes
 """
 
-#These IO pins are used
-#changeable
-VacSens = "DI1"
-Gripper = "DO2"
-
 #Set succes response
 response = True
 
 #dictionary of pins
-pinStates = {"DI1" :["-   ","-","VacSens"], "DO2":["-   ","-","Gripper"]}
+pinStates = {	
+	"DI1":["-   ","-","VacSens"], 
+	"DO2":["-   ","-","Gripper"]
+}
 
 def display():
 	'''
@@ -78,11 +76,9 @@ def request(req):
 	elif req.fun == 4:
 		pin = 'AO' + str(req.pin)
 	else:
-		help(request)
 		rospy.logerr("%d is no valid fun value, only 1 (Digital Out) and 4 (Analog Out) allowed", req.fun)
 		return SetIOResponse(False)
 	if pin not in pinStates:
-		help(request)
 		rospy.logerr("Writing to unused pin")
 		return SetIOResponse(False)
 #Change dictionary "pinStates" with correct data
@@ -90,10 +86,12 @@ def request(req):
 		pinStates[pin][1] = "Digital Out"
 		if (req.state != 0 and req.state != 1):
 			rospy.logerr("State value is %f, but must be either 0 or 1.", req.state)
+			return SetIOResponse(False)
 	else:
 		pinStates[pin][1] = "Analog Out"
 		if (req.state < 0 or req.state > 1):
 			rospy.logerr("State value is %f, but must be between 0 and 1.", req.state)
+			return SetIOResponse(False)
 	pinStates[pin][0] = "{0:.2f}".format(req.state)
 
 	display()
@@ -154,9 +152,6 @@ def updateInputPinValues():
 	pin: number between 1 and 8
 	state: value between 0.0 and 1.0
 	
-	return: succes is False if something went wrong 
-		otherwise a 'none'
-
 	Quit help function by pressing 'Q'
 	'''
 	try:
@@ -165,11 +160,11 @@ def updateInputPinValues():
 			display()
 			rospy.logerr("Fun nr not available")
 			help(updateInputPinValues)
-			return SetIOResponse(False)
+			return
 		print fun
 	except ValueError:
 		rospy.logerr("Not a Number")
-		return SetIOResponse(False)
+		return
 
 	pinQ = str(raw_input("Which pin you want to set? " ))
 	print pinQ
@@ -215,7 +210,7 @@ def main():
 				processKey(ch, io_state_pub)
 		except (KeyboardInterrupt, EOFError):
 			pass
-	rospy.logpinStates("Stopped")
+	rospy.loginfo("Stopped")
 
 if __name__ == '__main__':
 	main()
