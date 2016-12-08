@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package>
+	<name>kpr_testing</name>
+	<version>0.0.0</version>
+	<description>A package for testing the robots io-pins of the 'Tomatenplukkers' project</description>
+
+	<maintainer email="pascalle1994@hotmail.com">pascalle</maintainer>
+	<author email="pascalle1994@hotmail.com">Jane Doe</author>
+
+	<!-- One license tag required, multiple allowed, one license per tag -->
+	<!-- Commonly used license strings: -->
+	<!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+	<license>TODO</license>
+
+
+	<url type="repository">https://github.com/ChielBruin/tomatenplukkers</url>
+
+
+	<buildtool_depend>catkin</buildtool_depend>
+	<build_depend>rospy</build_depend>
+	<run_depend>rospy</run_depend>
+	<run_depend>ur_msgs</run_depend>
+	<run_depend>message_runtime</run_depend>
+
+
+	<export>	</export>
+
+</package>
