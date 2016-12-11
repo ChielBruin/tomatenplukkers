@@ -3,24 +3,38 @@
 	<arg name="cpu_mode" default="false"/>
 	<arg name="testing" default="false"/>
 	<arg name="enable_faster_rcnn" default="true"/>
+	<arg name="enable_gui" default="true"/>
+
+	<!-- Load the robot description -->
+	<group>
+		<param name="robot_description" textfile="$(find kpr_arm_control)/config/ur5.urdf" />
+		<param name="robot_description_semantic" textfile="$(find kpr_arm_control)/config/ur5.srdf" />
+		<param name="planning_plugin" value="ompl_interface/OMPLPlanner" />
+		<rosparam command="load" file="$(find kpr_arm_control)/config/joint_limits.yaml"/>
+		<rosparam command="load" file="$(find kpr_arm_control)/config/kinematics.yaml"/>
+	</group>
 
 	<!-- Launch the interface -->
-	<group>
+	<group if="$(arg enable_gui)">
 		<node name="settingsManager" pkg="kpr_interface" type="settingsManager.py"/>
 		<node name="interface" pkg="kpr_interface" type="interface.py" required="true"/>
 	</group>
 
 	<!-- Launch the hardware -->
-	<group>
-		<!-- Launch hardware that is always needed -->
+	<group if="0">
+		<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 	</group>
 
+	<!-- launch hardware dummy nodes -->
 	<group if="$(arg testing)"> 
-		<!-- launch hardware dummy nodes -->
+		<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+			<param name="/use_gui" value="true"/> 
+			<rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
+		</node>
 	</group>
 
+	<!-- launch actual hardware nodes -->
 	<group unless="$(arg testing)"> 
-		<!-- launch actual hardware nodes -->
 	</group>
 
 	<!-- Launch image detection -->

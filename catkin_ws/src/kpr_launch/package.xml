@@ -25,6 +25,8 @@
 	<build_depend>kpr_core</build_depend>
 	<build_depend>kpr_image_processing</build_depend>
 	<build_depend>kpr_arm_control</build_depend>
+	<build_depend>ur5_moveit_config</build_depend>
+	<build_depend>ur_description</build_depend>
 	
 	<run_depend>roslaunch</run_depend>
 	<run_depend>kpr_interface</run_depend>
@@ -32,7 +34,7 @@
 	<run_depend>kpr_core</run_depend>
 	<run_depend>kpr_image_processing</run_depend>
 	<run_depend>kpr_arm_control</run_depend>
-
+	<run_depend>ur_description</run_depend>
 
 	<export> </export>
 </package>

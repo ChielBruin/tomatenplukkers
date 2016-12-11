@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
 	kpr_image_processing
 	kpr_arm_control
 	ros_faster_rcnn
+	ur5_moveit_config
 )
 
 ################################################
