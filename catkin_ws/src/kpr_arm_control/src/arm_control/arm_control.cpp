@@ -8,14 +8,6 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/move_group_interface/move_group.h>
 
-const std::string FRAME_NAME = "endeffector";
-const std::string MOVE_GROUP_NAME = "endeffector";
-const std::string CONSTRAINT_LINK_NAME = "tool0";
-
-const float PLANNING_TIMEOUT = 1.0;
-
-int seq = 0;
-
 using namespace ros;
 /**
  * Moves the arm to a certain pose.
