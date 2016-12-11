@@ -8,9 +8,10 @@ from diagnostic_msgs.msg import KeyValue
 update_pub = rospy.Publisher('/settings/update', SetSetting, queue_size = 10)
 
 SETTINGS = {
-	'minWeight' : '300',
-	'maxWeight'	: '400',
-	'armSpeed'	: '100',
+	'minWeight' 	: '300',
+	'maxWeight'		: '400',
+	'armSpeed'		: '100',
+	'maxCurvature'	: '100',
 }
 
 def update() :

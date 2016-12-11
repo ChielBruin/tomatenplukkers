@@ -3,6 +3,7 @@
 
 #include "cucumber_msgs/Cucumber.h"
 #include "geometry_msgs/Pose.h"
+#include <math.h>
 
 /**
  * Container class that stores a cucumbers data.
@@ -66,13 +67,27 @@ class CucumberContainer {
 		 msg.curvature = curvature;
 		return msg;		 
 	}
-
+	
 	geometry_msgs::Pose createPose() {
 		geometry_msgs::Pose pose;
 		pose.position.x = x;
 		pose.position.y = y;
 		pose.position.z = z;
 		return pose;
+	}
+	
+	/**
+	 * Get the weight of the cucumber in grams.
+	 */
+	float getWeight() {
+		return M_PI * (this->width*.5) * (this->width*.5) * this->height;
+	}
+	
+	/**
+	 * Get the curvature of the cucumber.
+	 */
+	float getCurvature() {
+		return this->curvature;
 	}
 };
 #endif
