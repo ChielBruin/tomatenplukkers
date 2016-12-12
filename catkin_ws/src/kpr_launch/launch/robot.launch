@@ -9,7 +9,7 @@
 
 	<arg if="$(arg testing)" name="ursim"/>
 	<arg if="$(arg testing)" name="reverse_port" default="50001"/>
-	<arg if="$(arg testing)" name="limited" default="true"/>
+	<arg if="$(arg testing)" name="limited" default="false"/>
 	<arg if="$(arg testing)" name="min_payload"  default="0.0"/>
 	<arg if="$(arg testing)" name="max_payload"  default="10.0"/>
 	<arg if="$(arg testing)" name="max_velocity" default="10.0"/>
@@ -31,14 +31,14 @@
 			<param name="max_velocity" type="double" value="$(arg max_velocity)"/>
 		</node>
 		<node name="io_pins" pkg="kpr_testing" type="io_pins.py" output="screen" launch-prefix="gnome-terminal -x"/>
-		<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-			<param name="/use_gui" value="true"/> 
-			<rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
-		</node>
 	</group>
 
 	<group unless="$(arg testing)"> 
 		<!-- launch actual hardware nodes -->
+		<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+			<param name="/use_gui" value="true"/> 
+			<rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
+		</node>
 	</group>
 
 	<group>
