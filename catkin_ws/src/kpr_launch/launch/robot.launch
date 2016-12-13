@@ -5,6 +5,7 @@
 	<arg name="testing" default="false"/>
 	<arg name="enable_faster_rcnn" default="true"/> 
 	<arg name="robot_ip" default="127.0.0.1"/>
+	<arg name="vnc-server" default="false"/>
 
 	<arg if="$(arg testing)" name="ursim"/>
 	<arg if="$(arg testing)" name="reverse_port" default="50001"/>
@@ -23,13 +24,15 @@
 
 	<group if="$(arg testing)">
 		<!-- launch hardware dummy nodes -->
-		<node name="URsim" pkg="kpr_launch" type="URsim.sh" args="$(arg ursim)"/>
-		<node name="testing_ur_driver" pkg="ur_driver" type="driver.py" args="$(arg robot_ip) $(arg reverse_port)" respawn="true" respawn_delay="5">
-			<param name="min_payload" type="double" value="$(arg min_payload)"/>
-			<param name="max_payload" type="double" value="$(arg max_payload)"/>
-			<param name="max_velocity" type="double" value="$(arg max_velocity)"/>
-			
-		</node>
+		<group if="$(arg vnc-server)">
+			<node name="URsim" pkg="kpr_launch" type="URsim.sh" args="$(arg ursim)"/>
+			<node name="testing_ur_driver" pkg="ur_driver" type="driver.py" args="$(arg robot_ip) $(arg reverse_port)" respawn="true" respawn_delay="5">
+				<param name="min_payload" type="double" value="$(arg min_payload)"/>
+				<param name="max_payload" type="double" value="$(arg max_payload)"/>
+				<param name="max_velocity" type="double" value="$(arg max_velocity)"/>
+			</node>
+		</group>
+		
 		<node name="io_pins" pkg="kpr_testing" type="io_pins.py" output="screen" launch-prefix="gnome-terminal -x"/>
 	</group>
 
