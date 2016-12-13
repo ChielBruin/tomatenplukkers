@@ -6,10 +6,10 @@
 	<arg name="enable_faster_rcnn" default="true"/> 
 	<arg name="robot_ip" default="127.0.0.1"/>
 	<arg name="enable_gui" default="true"/>
+	<arg name="limited" default="true"/>
 
 	<arg if="$(arg testing)" name="ursim"/>
 	<arg if="$(arg testing)" name="reverse_port" default="50001"/>
-	<arg if="$(arg testing)" name="limited" default="false"/>
 	<arg if="$(arg testing)" name="min_payload"  default="0.0"/>
 	<arg if="$(arg testing)" name="max_payload"  default="10.0"/>
 	<arg if="$(arg testing)" name="max_velocity" default="10.0"/>
@@ -33,14 +33,6 @@
 		<node name="io_pins" pkg="kpr_testing" type="io_pins.py" output="screen" launch-prefix="gnome-terminal -x"/>
 	</group>
 
-	<group unless="$(arg testing)"> 
-		<!-- launch actual hardware nodes -->
-		<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-			<param name="/use_gui" value="true"/> 
-			<rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
-		</node>
-	</group>
-
 	<group>
 		<!-- Launch hardware that is always needed -->
 		<include file="$(find ur_bringup)/launch/ur5_bringup.launch"> 
@@ -58,6 +50,9 @@
 	<group>
 		<node name="armControl" pkg="kpr_arm_control" type="arm_control"/>
 		<node name="gripperControl" pkg="kpr_arm_control" type="gripper_control"/>
+		<include file="$(find ur5_moveit_config)/launch/move_group.launch">
+			<arg name="limited" value="$(arg limited)"/>
+		</include>
 	</group>
 
 	<!-- Launch main nodes -->
