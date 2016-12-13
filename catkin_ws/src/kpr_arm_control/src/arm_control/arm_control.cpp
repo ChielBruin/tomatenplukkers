@@ -5,10 +5,18 @@
 #include "cucumber_msgs/CucumberContainer.h"
 #include "geometry_msgs/Pose.h"
 
+#include <ur_msgs/IOStates.h>
+
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/move_group_interface/move_group.h>
 
 using namespace ros;
+
+const uint8_t GRIPPER_PIN = 0x0;
+const uint8_t CUTTER_PIN = 0x0;
+
+Publisher io_state_publisher;
+
 /**
  * Moves the arm to a certain pose.
  * 
@@ -23,6 +31,8 @@ bool moveArmTo(geometry_msgs::Pose targetPose) {
 		ROS_ERROR("The Move Group does not exist!");
 		return false;
 	}
+	ROS_INFO("Attempting to move to %f,%f,%f", targetPose.position.x,
+			targetPose.position.y, targetPose.position.z);
 
 	targetPose.orientation.w = 1.0;
 	moveit_consts::move_group_ptr->setPoseTarget(targetPose);
@@ -39,15 +49,31 @@ bool moveArmTo(geometry_msgs::Pose targetPose) {
 	return success;
 }
 
-bool startGrip(CucumberContainer cucumber) {
-	return false;
+bool startGrip() {
+	ur_msgs::IOStates io_message;
+	ur_msgs::Digital out_state;
+	out_state.pin = GRIPPER_PIN;
+	out_state.state = true;
+	io_message.digital_in_states.push_back(out_state);
+	io_state_publisher.publish(io_message);
+	return true;
 }
 
 void cut() {
-	//TODO Code to cut the cucumber.
+	ur_msgs::IOStates io_message;
+	ur_msgs::Digital out_state;
+	out_state.pin = CUTTER_PIN;
+	out_state.state = true;
+	io_message.digital_in_states.push_back(out_state);
+	io_state_publisher.publish(io_message);
 }
 
 bool releaseGrip() {
-	//TODO Code to release grip.
-	return false;
+	ur_msgs::IOStates io_message;
+	ur_msgs::Digital out_state;
+	out_state.pin = GRIPPER_PIN;
+	out_state.state = false;
+	io_message.digital_in_states.push_back(out_state);
+	io_state_publisher.publish(io_message);
+	return true;
 }

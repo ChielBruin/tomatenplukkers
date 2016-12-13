@@ -8,14 +8,38 @@
 #include "cucumber_msgs/CucumberContainer.h"
 #include "geometry_msgs/Pose.h"
 
+#include <ur_msgs/IOStates.h>
+
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 
 //#include <moveit_msgs/DisplayRobotState.h>
 
+#include<cmath> // TODO Remove later.
+
 using namespace ros;
 
 const std::string NODE_NAME = "Arm Control";
+
+float getRandFloat(float min, float max) {
+	float result = min + static_cast<float>(rand()) /
+			static_cast<float>(RAND_MAX/(max-min));
+	return result;
+}
+
+geometry_msgs::Pose generateValidPose() {
+	geometry_msgs::Pose pose;
+	float maxDistance = 0.8;
+	float x = getRandFloat(0, maxDistance/2);
+	pose.position.x = x;
+	float y = getRandFloat(0, maxDistance/2);
+	pose.position.y = y;
+	maxDistance = maxDistance - sqrt(x * x + y * y);
+	float z = getRandFloat(2*maxDistance/3, maxDistance);
+	pose.position.z = z;
+	ROS_INFO("Generated distance: %f", sqrt(x*x + y*y + z*y));
+	return pose;
+}
 
 bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		cucumber_msgs::HarvestAction::Response &response) {
@@ -29,30 +53,32 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 
 	CucumberContainer target = CucumberContainer(msg.cucumber);
 	ROS_INFO("Sending move to arm");
-	success = moveArmTo(target.createPose());
+	// success = moveArmTo(target.createPose());
+	success = moveArmTo(generateValidPose());
 	if (!success) {
 		response.status = response.MOVE_ERR;
 		ROS_ERROR("Moving to cucumber has failed!");
-		return success;
+		return true;
 	}
 	ROS_INFO("Move arm done");
 
-	success = startGrip(target);
+	success = startGrip();
 	if (!success) {
 		response.status = response.GRAB_ERR;
 		ROS_ERROR("Grabbing cucumber has failed!");
-		return success;
+		return true;
 	}
 	ROS_INFO("Grip done");
 
 	cut();
 	ROS_INFO("Cut done");
 
-	success = moveArmTo(msg.dropLocation);
+	// success = moveArmTo(msg.dropLocation);
+	success = moveArmTo(generateValidPose());
 	if (!success) {
 		response.status = response.MOVE_ERR;
 		ROS_ERROR("Moving to drop off has failed!");
-		return success;
+		return true;
 	}
 	ROS_INFO("Move arm back done");
 
@@ -60,7 +86,7 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 	if (!success) {
 		response.status = response.DROP_ERR;
 		ROS_ERROR("Releasing grip has failed!");
-		return success;
+		return true;
 	}
 	ROS_INFO("Release grip done");
 
@@ -70,6 +96,7 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 void setupRos(NodeHandle n) {
 	moveit_consts::move_group_ptr = MoveGroupPtr(new moveit::
 			planning_interface::MoveGroup(moveit_consts::move_group_name));
+	moveit_consts::move_group_ptr->setNumPlanningAttempts(5);
 	moveit_consts::planning_scene_interface_ptr = PlanningSceneInterfacePtr(
 			new moveit::planning_interface::PlanningSceneInterface());
 
@@ -86,6 +113,7 @@ int main(int argc, char **argv) {
 
 	ServiceServer cucumberService = n.advertiseService("target/cucumber",
 			getCucumber);
+	io_state_publisher = n.advertise<ur_msgs::IOStates>("iostates", 1);
 
 	setupRos(n);
 
