@@ -31,7 +31,7 @@
 				<param name="max_payload" type="double" value="$(arg max_payload)"/>
 				<param name="max_velocity" type="double" value="$(arg max_velocity)"/>
 			</node>
-		</group if>
+		</group>
 		
 		<node name="io_pins" pkg="kpr_testing" type="io_pins.py" output="screen" launch-prefix="gnome-terminal -x"/>
 	</group>
