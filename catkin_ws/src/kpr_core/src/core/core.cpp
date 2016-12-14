@@ -16,9 +16,10 @@ bool checkHarvestable(CucumberContainer c) {
 
 /**
  * Check if the queue already contains a cucumber that is the same as the given cucumber.
+ * @return True when the cucumber is already in the queue, false otherwise
  */
 bool queueContains(CucumberContainer c) {
-	for (auto &cucumber : queue) {
+	for (CucumberContainer &cucumber : queue) {
 		if (cucumber.equals(c)) return true;
 	}
 	return false;
