@@ -73,6 +73,7 @@ class CucumberContainer {
 		pose.position.x = x;
 		pose.position.y = y;
 		pose.position.z = z;
+		pose.orientation.w = 1.0;
 		return pose;
 	}
 	

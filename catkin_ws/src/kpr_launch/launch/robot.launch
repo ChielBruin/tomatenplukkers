@@ -48,7 +48,9 @@
 
 	<!-- Launch moveIt! -->
 	<group>
-		<node name="armControl" pkg="kpr_arm_control" type="arm_control"/>
+		<node name="armControl" pkg="kpr_arm_control" type="arm_control">
+			<remap if="$(arg testing)" from="set_io" to="set_io_testing"/>
+		</node>
 		<node name="gripperControl" pkg="kpr_arm_control" type="gripper_control"/>
 		<include file="$(find ur5_moveit_config)/launch/move_group.launch">
 			<arg name="limited" value="$(arg limited)"/>

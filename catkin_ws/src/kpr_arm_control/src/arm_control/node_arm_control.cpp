@@ -1,26 +1,28 @@
 #include "ros/ros.h"
 #include "arm_control.cpp"
-#include "moveit_consts.h"
 #include <memory>
 
 #include "cucumber_msgs/HarvestAction.h"
 #include "cucumber_msgs/Cucumber.h"
 #include "cucumber_msgs/CucumberContainer.h"
 #include "geometry_msgs/Pose.h"
+#include "geometry_msgs/Quaternion.h"
 
-#include <ur_msgs/IOStates.h>
+#include <ur_msgs/SetIO.h>
 
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 
-//#include <moveit_msgs/DisplayRobotState.h>
-
-#include<cmath> // TODO Remove later.
+//#include <cmath> //TODO Remove later.
+//#include <ctime> //TODO Remove later.
+//#include <tf/LinearMath/Transform.h> //TODO Remove later.
 
 using namespace ros;
 
 const std::string NODE_NAME = "Arm Control";
+const std::string move_group_name("manipulator");
 
+//TODO Remove all until next comment.
 float getRandFloat(float min, float max) {
 	float result = min + static_cast<float>(rand()) /
 			static_cast<float>(RAND_MAX/(max-min));
@@ -34,27 +36,54 @@ geometry_msgs::Pose generateValidPose() {
 	pose.position.x = x;
 	float y = getRandFloat(0, maxDistance/2);
 	pose.position.y = y;
-	maxDistance = maxDistance - sqrt(x * x + y * y);
-	float z = getRandFloat(2*maxDistance/3, maxDistance);
+	maxDistance = maxDistance - sqrt(x*x + y*y);
+	float z = getRandFloat(3*maxDistance/4, maxDistance);
 	pose.position.z = z;
-	ROS_INFO("Generated distance: %f", sqrt(x*x + y*y + z*y));
+	ROS_INFO("Generated distance: %f", sqrt(x*x + y*y + z*z));
+	pose.orientation.w = 1.0;
 	return pose;
 }
 
+geometry_msgs::Quaternion generateRandomQuaternion() {
+	float r = getRandFloat(0,1);
+	float p = getRandFloat(0,1);
+	float y = getRandFloat(0,1);
+	return tf::createQuaternionMsgFromRollPitchYaw(r,p,y);
+}
+
+void calcSuccessRate() {
+	geometry_msgs::Pose pose;
+	float successes = 0;
+	float tests = 25;
+	bool success;
+	for (int i = 0; i < tests; i++) {
+		pose = generateValidPose();
+		success = moveArmTo(pose);
+		if (success) {
+			successes++;
+		} else {
+			pose.orientation = generateRandomQuaternion();
+			success = moveArmTo(pose);
+			if (success) {
+				successes++;
+			}
+		}
+	}
+	ROS_INFO("Done. Success rate was %f.", (successes/tests));
+}
+//TODO Remove until here.
+
 bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		cucumber_msgs::HarvestAction::Response &response) {
+	//calcSuccessRate();
+	//return true;
 	bool success = true;
 
 	ROS_INFO("Got cucumber");
-	
-	if (!moveit_consts::move_group_ptr) {
-		ROS_ERROR("MoveGroup has been destroyed!");
-	}
 
 	CucumberContainer target = CucumberContainer(msg.cucumber);
 	ROS_INFO("Sending move to arm");
-	// success = moveArmTo(target.createPose());
-	success = moveArmTo(generateValidPose());
+	success = moveArmTo(target.createPose());
 	if (!success) {
 		response.status = response.MOVE_ERR;
 		ROS_ERROR("Moving to cucumber has failed!");
@@ -70,11 +99,15 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 	}
 	ROS_INFO("Grip done");
 
-	cut();
+	success = cut();
+	if (!success) {
+		response.status = response.CUTT_ERR;
+		ROS_ERROR("Cutting has failed!");
+		return true;
+	}
 	ROS_INFO("Cut done");
 
-	// success = moveArmTo(msg.dropLocation);
-	success = moveArmTo(generateValidPose());
+	success = moveArmTo(msg.dropLocation);
 	if (!success) {
 		response.status = response.MOVE_ERR;
 		ROS_ERROR("Moving to drop off has failed!");
@@ -94,16 +127,15 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 }
 
 void setupRos(NodeHandle n) {
-	moveit_consts::move_group_ptr = MoveGroupPtr(new moveit::
-			planning_interface::MoveGroup(moveit_consts::move_group_name));
-	moveit_consts::move_group_ptr->setNumPlanningAttempts(5);
-	moveit_consts::planning_scene_interface_ptr = PlanningSceneInterfacePtr(
+	move_group_ptr = MoveGroupPtr(new moveit::
+			planning_interface::MoveGroup(move_group_name));
+	move_group_ptr->setNumPlanningAttempts(1);
+	move_group_ptr->setPlanningTime(0.5);
+	planning_scene_interface_ptr = PlanningSceneInterfacePtr(
 			new moveit::planning_interface::PlanningSceneInterface());
 
-	ROS_INFO("Reference frame: %s", moveit_consts::move_group_ptr->
-			getPlanningFrame().c_str());
-	ROS_INFO("Reference frame: %s", moveit_consts::move_group_ptr->
-			getEndEffectorLink().c_str());
+	ROS_INFO("Reference frame: %s", move_group_ptr->getPlanningFrame().c_str());
+	ROS_INFO("Reference frame: %s", move_group_ptr->getEndEffectorLink().c_str());
 }
 
 int main(int argc, char **argv) {
@@ -111,9 +143,8 @@ int main(int argc, char **argv) {
 	ROS_INFO("Started");
 	NodeHandle n;
 
-	ServiceServer cucumberService = n.advertiseService("target/cucumber",
-			getCucumber);
-	io_state_publisher = n.advertise<ur_msgs::IOStates>("iostates", 1);
+	ServiceServer cucumberService = n.advertiseService("target/cucumber", getCucumber);
+	io_state_client = n.serviceClient<ur_msgs::SetIO>("set_io");
 
 	setupRos(n);
 
