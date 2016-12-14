@@ -14,7 +14,13 @@ bool checkHarvestable(CucumberContainer c) {
 	return weightOK && curvatureOK;
 }
 
+/**
+ * Check if the queue already contains a cucumber that is the same as the given cucumber.
+ */
 bool queueContains(CucumberContainer c) {
+	for (auto &cucumber : queue) {
+		if (cucumber.equals(c)) return true;
+	}
 	return false;
 }
 
