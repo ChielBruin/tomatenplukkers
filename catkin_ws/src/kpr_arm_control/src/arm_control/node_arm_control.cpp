@@ -13,70 +13,13 @@
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 
-//#include <cmath> //TODO Remove later.
-//#include <ctime> //TODO Remove later.
-//#include <tf/LinearMath/Transform.h> //TODO Remove later.
-
 using namespace ros;
 
 const std::string NODE_NAME = "Arm Control";
 const std::string move_group_name("manipulator");
 
-//TODO Remove all until next comment.
-float getRandFloat(float min, float max) {
-	float result = min + static_cast<float>(rand()) /
-			static_cast<float>(RAND_MAX/(max-min));
-	return result;
-}
-
-geometry_msgs::Pose generateValidPose() {
-	geometry_msgs::Pose pose;
-	float maxDistance = 0.8;
-	float x = getRandFloat(0, maxDistance/2);
-	pose.position.x = x;
-	float y = getRandFloat(0, maxDistance/2);
-	pose.position.y = y;
-	maxDistance = maxDistance - sqrt(x*x + y*y);
-	float z = getRandFloat(3*maxDistance/4, maxDistance);
-	pose.position.z = z;
-	ROS_INFO("Generated distance: %f", sqrt(x*x + y*y + z*z));
-	pose.orientation.w = 1.0;
-	return pose;
-}
-
-geometry_msgs::Quaternion generateRandomQuaternion() {
-	float r = getRandFloat(0,1);
-	float p = getRandFloat(0,1);
-	float y = getRandFloat(0,1);
-	return tf::createQuaternionMsgFromRollPitchYaw(r,p,y);
-}
-
-void calcSuccessRate() {
-	geometry_msgs::Pose pose;
-	float successes = 0;
-	float tests = 25;
-	bool success;
-	for (int i = 0; i < tests; i++) {
-		pose = generateValidPose();
-		success = moveArmTo(pose);
-		if (success) {
-			successes++;
-		} else {
-			pose.orientation = generateRandomQuaternion();
-			success = moveArmTo(pose);
-			if (success) {
-				successes++;
-			}
-		}
-	}
-	ROS_INFO("Done. Success rate was %f.", (successes/tests));
-}
-//TODO Remove until here.
-
 bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		cucumber_msgs::HarvestAction::Response &response) {
-	//calcSuccessRate();
-	//return true;
 	bool success = true;
 
 	ROS_INFO("Got cucumber");

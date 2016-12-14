@@ -10,6 +10,8 @@
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group_interface/move_group.h>
 
+#include <moveit_msgs/MoveItErrorCodes.h>
+
 using namespace ros;
 
 typedef std::shared_ptr<moveit::planning_interface::MoveGroup> MoveGroupPtr;
@@ -19,8 +21,8 @@ const uint8_t VACUUM_PIN = 0x1;
 const uint8_t GRIPPER_PIN = 0x2;
 const uint8_t CUTTER_PIN = 0x4;
 
-const float GRIPPER_CLOSE = 0x1; // Not sure about value
-const float GRIPPER_OPEN = 0x0; // Not sure about value
+const float GRIPPER_CLOSE = 0x0; // Not sure about value
+const float GRIPPER_OPEN = 0x1; // Not sure about value
 const float CUTTER_CLOSE = 0x1; // Not sure about value
 const float CUTTER_OPEN = 0x0; // Not sure about value
 
@@ -31,8 +33,6 @@ PlanningSceneInterfacePtr planning_scene_interface_ptr;
 /**
  * Moves the arm to a certain pose.
  * 
- * @param [in] plannerManager The instance of the planner manager to use.
- * @param [in] planningScene The instance of the planning scene to use.
  * @param [in] targetPose The target pose at the end of the action.
  * 
  * @return True if the movement succeeded, false otherwise.
@@ -51,48 +51,59 @@ bool moveArmTo(geometry_msgs::Pose targetPose) {
 	bool success = move_group_ptr->plan(my_plan);
 
 	if (!success) {
-		ROS_ERROR("Could not plan a move; move is probably impossible.");
 		if (distance > 0.8) {
-			ROS_ERROR("Move failed because location was out of reach.");
+			ROS_ERROR("Planning failed because location was out of reach.");
 		} else if (distance < 0.25) {
-			ROS_ERROR("Move failed because location was probably too close to the base");
+			ROS_ERROR("Planning failed because location was probably too close to the base");
+		} else {
+			ROS_ERROR("Could not plan a move; move is probably impossible.");
 		}
-		return success;
-	}
-	move_group_ptr->move();
-
-	return success;
-}
-
-bool startGrip() {
-	ur_msgs::SetIO io_message;
-	io_message.request.fun = io_message.request.FUN_SET_DIGITAL_OUT;
-	io_message.request.pin = GRIPPER_PIN;
-	io_message.request.state = GRIPPER_CLOSE;
-	return io_state_client.call(io_message) && io_message.response.success;
-}
-
-bool cut() {
-	ur_msgs::SetIO io_message_close;
-	io_message_close.request.fun = io_message_close.request.FUN_SET_DIGITAL_OUT;
-	io_message_close.request.pin = CUTTER_PIN;
-	io_message_close.request.state = CUTTER_CLOSE;
-	if (!(io_state_client.call(io_message_close) && io_message_close.response.success)) {
 		return false;
 	}
-
-	//TODO Not sure if a timeout should be here.
-	ur_msgs::SetIO io_message_open;
-	io_message_open.request.fun = io_message_open.request.FUN_SET_DIGITAL_OUT;
-	io_message_open.request.pin = CUTTER_PIN;
-	io_message_open.request.state = CUTTER_OPEN;
-	return io_state_client.call(io_message_close) && io_message_close.response.success;
+	moveit_msgs::MoveItErrorCodes errorCode = move_group_ptr->move();
+	if (errorCode.val == errorCode.SUCCESS) {
+		return true;
+	} else {
+		ROS_ERROR("Could not move the robot after move plan was obtained.");
+		ROS_ERROR("MoveIt! returned error code %d. For the meaning of this"
+				"error visit http://docs.ros.org/jade/api/moveit_msgs/html"
+				"/msg/MoveItErrorCodes.html", errorCode.val);
+		return false;
+	}
 }
 
-bool releaseGrip() {
+bool sendIO(int8_t pin, float state) {
 	ur_msgs::SetIO io_message;
 	io_message.request.fun = io_message.request.FUN_SET_DIGITAL_OUT;
-	io_message.request.pin = GRIPPER_PIN;
-	io_message.request.state = GRIPPER_OPEN;
+	io_message.request.pin = pin;
+	io_message.request.state = state;
 	return io_state_client.call(io_message) && io_message.response.success;
+}
+
+/**
+ * Sends the necessary IO message to close the gripper.
+ * @return True if the IO call succeeded, false otherwise.
+ */
+bool startGrip() {
+	return sendIO(GRIPPER_PIN, GRIPPER_CLOSE);
+}
+
+/**
+ * Sends the necessary IO message to do a cut.
+ * @return True if the IO call succeeded, false otherwise.
+ */
+bool cut() {
+	if (!sendIO(CUTTER_PIN, CUTTER_CLOSE)) {
+		return false;
+	}
+	//TODO Not sure whether a timeout should be here.
+	return sendIO(CUTTER_PIN, CUTTER_OPEN);
+}
+
+/**
+ * Sends the necessary IO message to open the gripper.
+ * @return True if the IO call succeeded, false otherwise.
+ */
+bool releaseGrip() {
+	return sendIO(GRIPPER_PIN, GRIPPER_OPEN);
 }
