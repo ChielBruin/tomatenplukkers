@@ -18,6 +18,19 @@ using namespace ros;
 const std::string NODE_NAME = "Arm Control";
 const std::string move_group_name("manipulator");
 
+/**
+ * Attempts to pick a cucumber. This function does the following things:
+ * - It attempts to move the arm to the location of the cucumber.
+ * - It attempts to grip the cucumber.
+ * - It attempts to cut the stem of the cucumber.
+ * - It attempts to move the arm to the drop-off location.
+ * - It attempts to let the cucumber go.
+ * 
+ * @param [in] msg The Request to pick a certain cucumber.
+ * @param [out] response The Response that will be sent to the client.
+ * 
+ * @return True if the service didn't encounter critical errors, false otherwise.
+ */
 bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		cucumber_msgs::HarvestAction::Response &response) {
 	bool success = true;
@@ -69,7 +82,12 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 	return true;
 }
 
-void setupRos(NodeHandle n) {
+/**
+ * Sets up the moveIt environment.
+ * 
+ * @param [in] n The node handle used to communicate with the master.
+ */
+void setupMoveIt(NodeHandle n) {
 	move_group_ptr = MoveGroupPtr(new moveit::
 			planning_interface::MoveGroup(move_group_name));
 	move_group_ptr->setNumPlanningAttempts(1);
@@ -81,6 +99,14 @@ void setupRos(NodeHandle n) {
 	ROS_INFO("Reference frame: %s", move_group_ptr->getEndEffectorLink().c_str());
 }
 
+/**
+ * Starts the arm control node. It does not require any parameters.
+ * 
+ * @param [in] argc The amount of parameters.
+ * @param [in] argv The parameters.
+ * 
+ * @return The status code of the execution.
+ */
 int main(int argc, char **argv) {
 	init(argc, argv, NODE_NAME);
 	ROS_INFO("Started");
@@ -89,7 +115,7 @@ int main(int argc, char **argv) {
 	ServiceServer cucumberService = n.advertiseService("target/cucumber", getCucumber);
 	io_state_client = n.serviceClient<ur_msgs::SetIO>("set_io");
 
-	setupRos(n);
+	setupMoveIt(n);
 
 	// At least two threads necessary to receive planning feedback.
 	AsyncSpinner spinner(2);

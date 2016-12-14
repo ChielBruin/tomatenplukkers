@@ -72,6 +72,15 @@ bool moveArmTo(geometry_msgs::Pose targetPose) {
 	}
 }
 
+/**
+ * Sends the given IO state to the given pin. Automatically uses the
+ * SET_DIGITAL_OUT function.
+ * 
+ * @param [in] pin The pin the IO message should be sent to.
+ * @param [in] state The state that should be sent to the pin.
+ * 
+ * @return True if the IO call succeeded, false otherwise.
+ */
 bool sendIO(int8_t pin, float state) {
 	ur_msgs::SetIO io_message;
 	io_message.request.fun = io_message.request.FUN_SET_DIGITAL_OUT;
