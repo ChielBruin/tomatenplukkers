@@ -24,7 +24,7 @@
 
 	<group if="$(arg testing)">
 		<!-- launch hardware dummy nodes -->
-		<group if="$(arg vnc-server)">
+		<group unless="$(arg vnc-server)">
 			<node name="URsim" pkg="kpr_launch" type="URsim.sh" args="$(arg ursim)"/>
 			<node name="testing_ur_driver" pkg="ur_driver" type="driver.py" args="$(arg robot_ip) $(arg reverse_port)" respawn="true" respawn_delay="5">
 				<param name="min_payload" type="double" value="$(arg min_payload)"/>
