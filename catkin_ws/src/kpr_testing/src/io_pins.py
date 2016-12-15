@@ -19,7 +19,8 @@ response = True
 #dictionary of pins
 pinStates = {	
 	"DI1":["-   ","-","VacSens"], 
-	"DO2":["-   ","-","Gripper"]
+	"DO2":["-   ","-","Gripper"],
+	"DO4":["-   ","-","Cutter"],
 }
 
 def display():
@@ -204,7 +205,7 @@ def main():
 	'''
 	rospy.init_node('io_server')
 	rospy.loginfo("Started")
-	s = rospy.Service('io', SetIO, request)
+	s = rospy.Service('set_io_testing', SetIO, request)
 	display()
 	io_state_pub = rospy.Publisher("io_states", IOStates, queue_size=10)
 
