@@ -5,13 +5,10 @@
 	<arg name="testing" default="false"/>
 	<arg name="enable_faster_rcnn" default="true"/> 
 	<arg name="robot_ip" default="127.0.0.1"/>
-<<<<<<< HEAD
 	<arg name="enable_camera" default="false"/>
-=======
 	<arg name="enable_gui" default="true"/>
 	<arg name="limited" default="true"/>
 	<arg name="vnc-server" default="false"/>
->>>>>>> origin/master
 
 	<arg if="$(arg testing)" name="ursim"/>
 	<arg if="$(arg testing)" name="reverse_port" default="50001"/>
