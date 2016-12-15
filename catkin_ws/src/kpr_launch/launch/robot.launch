@@ -1,82 +1,29 @@
 <?xml version="1.0"?>
-<!-- Launch file that starts the robot -->
+<!-- Launch file that starts the real version of the robot -->
 <launch>
-	<arg name="cpu_mode" default="false"/>
-	<arg name="testing" default="false"/>
-	<arg name="enable_faster_rcnn" default="true"/> 
-	<arg name="robot_ip" default="127.0.0.1"/>
-	<arg name="enable_camera" default="false"/>
 	<arg name="enable_gui" default="true"/>
+
+	<arg name="robot_ip"/>
 	<arg name="limited" default="true"/>
-	<arg name="vnc-server" default="false"/>
 
-	<arg if="$(arg testing)" name="ursim"/>
-	<arg if="$(arg testing)" name="reverse_port" default="50001"/>
-	<arg if="$(arg testing)" name="min_payload"  default="0.0"/>
-	<arg if="$(arg testing)" name="max_payload"  default="10.0"/>
-	<arg if="$(arg testing)" name="max_velocity" default="10.0"/>
+	<arg name="cpu_mode" default="false"/>
+	<arg name="enable_faster_rcnn" default="true"/>
 
-	<!-- If running on main machine -->
-	<group unless="$(arg enable_camera)"> 
-		<!-- Launch the interface -->
-		<group if="$(arg enable_gui)">
-			<node name="settingsManager" pkg="kpr_interface" type="settingsManager.py"/>
-			<node name="interface" pkg="kpr_interface" type="interface.py" required="true"/>
-		</group>
+	<!-- Launch the interface -->
+	<include if="$(arg enable_gui)" file="$(find kpr_interface)/launch/interface.launch"/>
 
-		<!-- Launch the hardware -->
-		<group if="$(arg testing)">
-			<!-- launch hardware dummy nodes -->
-			<group unless="$(arg vnc-server)">
-				<node name="URsim" pkg="kpr_launch" type="URsim.sh" args="$(arg ursim)"/>
-			</group>
-			<node name="testing_ur_driver" pkg="ur_driver" type="driver.py" args="$(arg robot_ip) $(arg reverse_port)" respawn="true" respawn_delay="5">
-				<param name="min_payload" type="double" value="$(arg min_payload)"/>
-				<param name="max_payload" type="double" value="$(arg max_payload)"/>
-				<param name="max_velocity" type="double" value="$(arg max_velocity)"/>
-			
-			</node>
-			<node name="io_pins" pkg="kpr_testing" type="io_pins.py" output="screen" launch-prefix="gnome-terminal -x"/>
-		</group>
+	<!-- Launch the hardware -->
+	<include file="$(find kpr_arm_control)/launch/hardware.launch">
+		<arg name="robot_ip" value="$(arg robot_ip)"/>
+		<arg name="limited" value="$(arg limited)"/>
+	</include>
 
-		<group unless="$(arg testing)"> 
-			<!-- launch actual hardware nodes -->
-		</group>
+	<!-- Launch fasterRCNN -->
+	<include if="$(arg enable_faster_rcnn)" file="$(find ros_faster_rcnn)/launch/faster_rcnn.launch">
+		<arg name="cpu_mode" value="$(arg cpu_mode)"/>
+	</include>
 
-		<group>
-			<!-- Launch hardware that is always needed -->
-			<include file="$(find ur_bringup)/launch/ur5_bringup.launch"> 
-				<arg name="robot_ip" value="$(arg robot_ip)"/>
-				<arg name="limited" value="$(arg limited)"/>
-			</include>
-		</group>
-
-		<!-- Launch image detection -->
-		<group if="$(arg enable_faster_rcnn)">
-			<node if="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" args="--cpu"/>
-			<node unless="$(arg cpu_mode)" name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py" />
-		</group>
-
-		<!-- Launch moveIt! -->
-		<group>
-			<node name="armControl" pkg="kpr_arm_control" type="arm_control">
-				<remap if="$(arg testing)" from="set_io" to="set_io_testing"/>
-			</node>
-			<include file="$(find ur5_moveit_config)/launch/move_group.launch">
-				<arg name="limited" value="$(arg limited)"/>
-			</include>
-		</group>
-
-		<!-- Launch main nodes -->
-		<group>
-			<node name="CVis" pkg="kpr_image_processing" type="cVis"/>
-			<node name="IdCB" pkg="kpr_image_processing" type="IdCB"/>
-			<node name="core" pkg="kpr_core" type="core"/>
-		</group>
-	</group>
-	
-<!-- If running on external laptop -->
-	<group if="$(arg enable_camera)">
-		<include file="$(find kpr_launch)/launch/image_pipeline.launch"/>
-	</group>
+	<!-- Launch main nodes -->
+	<include file="$(find kpr_image_processing)/launch/image_processing.launch"/>
+	<include file="$(find kpr_core)/launch/core.launch"/>
 </launch>
