@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+	<include file="$(find pointgrey_camera_driver)/launch/bumblebee.launch">
+		<arg name="calibrated" value="1"/>
+	</include>
+	<node name="stereo_image_proc" pkg="stereo_image_proc" type="stereo_image_proc" output="screen" ns="camera/">
+		<param name="prefilter_size" value="111"/>
+		<param name="prefilter_cap" value="31"/>
+		<param name="correlation_window_size" value="15"/>
+		<param name="min_disparity" value="128"/>
+		<param name="disparity_range" value="128"/>
+		<param name="uniqueness_ratio" value="11.0"/>
+		<param name="texture_threshold" value="10"/>
+		<param name="speckle_size" value="527"/>
+		<param name="speckle_range" value="10"/>		
+		<param name="approximate_sync" value="true"/>		
+	</node>
+</launch>
