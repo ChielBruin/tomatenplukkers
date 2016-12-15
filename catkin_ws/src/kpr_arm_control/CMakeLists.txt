@@ -15,8 +15,6 @@ find_package(catkin REQUIRED COMPONENTS
 	ur_msgs
 )
 
-find_package(Boost REQUIRED system filesystem date_time thread)
-
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
@@ -39,7 +37,6 @@ catkin_package(
 ## Allow c++11
 set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
-# include_directories(include)
 include_directories(
 	${catkin_INCLUDE_DIRS}
 )

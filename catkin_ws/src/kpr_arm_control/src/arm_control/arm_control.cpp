@@ -94,7 +94,11 @@ bool sendIO(int8_t pin, float state) {
  * @return True if the IO call succeeded, false otherwise.
  */
 bool startGrip() {
-	return sendIO(GRIPPER_PIN, GRIPPER_CLOSE);
+	bool success = sendIO(GRIPPER_PIN, GRIPPER_CLOSE);
+	//TODO Wait for IO to confirm the gripper has closed.
+	// Attempt to close multiple times in slightly different conditions
+	// if it failed.
+	return success;
 }
 
 /**
@@ -105,7 +109,7 @@ bool cut() {
 	if (!sendIO(CUTTER_PIN, CUTTER_CLOSE)) {
 		return false;
 	}
-	//TODO Not sure whether a timeout should be here.
+	//TODO Add wait for IO to confirm the cutter has closed.
 	return sendIO(CUTTER_PIN, CUTTER_OPEN);
 }
 

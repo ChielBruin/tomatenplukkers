@@ -67,7 +67,10 @@ class CucumberContainer {
 		 msg.curvature = curvature;
 		return msg;		 
 	}
-	
+
+	/**
+	 * Generates a Pose for the location of the cucumber.
+	 */
 	geometry_msgs::Pose createPose() {
 		geometry_msgs::Pose pose;
 		pose.position.x = x;

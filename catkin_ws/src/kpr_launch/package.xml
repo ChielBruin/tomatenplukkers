@@ -36,6 +36,4 @@
 	<run_depend>xacro</run_depend>
 	<run_depend>joint_state_publisher</run_depend>
 	<run_depend>ur5_moveit_config</run_depend>
-
-	<export> </export>
 </package>

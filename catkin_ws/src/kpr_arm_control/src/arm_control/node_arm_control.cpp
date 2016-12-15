@@ -35,17 +35,17 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		cucumber_msgs::HarvestAction::Response &response) {
 	bool success = true;
 
-	ROS_INFO("Got cucumber");
+	ROS_DEBUG("Received cucumber from core.");
 
 	CucumberContainer target = CucumberContainer(msg.cucumber);
-	ROS_INFO("Sending move to arm");
+	ROS_DEBUG("Sending move to arm");
 	success = moveArmTo(target.createPose());
 	if (!success) {
 		response.status = response.MOVE_ERR;
 		ROS_ERROR("Moving to cucumber has failed!");
 		return true;
 	}
-	ROS_INFO("Move arm done");
+	ROS_DEBUG("Move arm done.");
 
 	success = startGrip();
 	if (!success) {
@@ -53,7 +53,9 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		ROS_ERROR("Grabbing cucumber has failed!");
 		return true;
 	}
-	ROS_INFO("Grip done");
+	ROS_DEBUG("Grip done.");
+
+	//TODO Attempt to attach the suction cup to the cucumber.
 
 	success = cut();
 	if (!success) {
@@ -61,7 +63,7 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		ROS_ERROR("Cutting has failed!");
 		return true;
 	}
-	ROS_INFO("Cut done");
+	ROS_DEBUG("Cut done.");
 
 	success = moveArmTo(msg.dropLocation);
 	if (!success) {
@@ -69,7 +71,7 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		ROS_ERROR("Moving to drop off has failed!");
 		return true;
 	}
-	ROS_INFO("Move arm back done");
+	ROS_DEBUG("Move arm back done.");
 
 	success = releaseGrip();
 	if (!success) {
@@ -77,7 +79,8 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		ROS_ERROR("Releasing grip has failed!");
 		return true;
 	}
-	ROS_INFO("Release grip done");
+	ROS_DEBUG("Release grip done.");
+	ROS_INFO("Successfully harvested a cucumber.");
 
 	return true;
 }
@@ -100,7 +103,7 @@ void setupMoveIt(NodeHandle n) {
 }
 
 /**
- * Starts the arm control node. It does not require any parameters.
+ * Starts the arm control node. It does not require any command line parameters.
  * 
  * @param argc The amount of parameters.
  * @param argv The parameters.
