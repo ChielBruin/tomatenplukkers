@@ -26,8 +26,8 @@ const std::string move_group_name("manipulator");
  * - It attempts to move the arm to the drop-off location.
  * - It attempts to let the cucumber go.
  * 
- * @param [in] msg The Request to pick a certain cucumber.
- * @param [out] response The Response that will be sent to the client.
+ * @param msg The Request to pick a certain cucumber.
+ * @param response The Response that will be sent to the client.
  * 
  * @return True if the service didn't encounter critical errors, false otherwise.
  */
@@ -85,7 +85,7 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 /**
  * Sets up the moveIt environment.
  * 
- * @param [in] n The node handle used to communicate with the master.
+ * @param n The node handle used to communicate with the master.
  */
 void setupMoveIt(NodeHandle n) {
 	move_group_ptr = MoveGroupPtr(new moveit::
@@ -102,8 +102,8 @@ void setupMoveIt(NodeHandle n) {
 /**
  * Starts the arm control node. It does not require any parameters.
  * 
- * @param [in] argc The amount of parameters.
- * @param [in] argv The parameters.
+ * @param argc The amount of parameters.
+ * @param argv The parameters.
  * 
  * @return The status code of the execution.
  */

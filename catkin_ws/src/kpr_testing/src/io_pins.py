@@ -20,7 +20,7 @@ response = True
 pinStates = {	
 	"DI1":["-   ","-","VacSens"], 
 	"DO2":["-   ","-","Gripper"],
-	"DO4":["-	","-","Cutter"],
+	"DO4":["-   ","-","Cutter"],
 }
 
 def display():

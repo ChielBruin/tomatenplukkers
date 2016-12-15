@@ -21,10 +21,10 @@ const uint8_t VACUUM_PIN = 0x1;
 const uint8_t GRIPPER_PIN = 0x2;
 const uint8_t CUTTER_PIN = 0x4;
 
-const float GRIPPER_CLOSE = 0x0; // Not sure about value
-const float GRIPPER_OPEN = 0x1; // Not sure about value
-const float CUTTER_CLOSE = 0x1; // Not sure about value
-const float CUTTER_OPEN = 0x0; // Not sure about value
+const float GRIPPER_CLOSE = 0x0;
+const float GRIPPER_OPEN = 0x1;
+const float CUTTER_CLOSE = 0x1;
+const float CUTTER_OPEN = 0x0;
 
 ServiceClient io_state_client;
 MoveGroupPtr move_group_ptr;
@@ -33,7 +33,7 @@ PlanningSceneInterfacePtr planning_scene_interface_ptr;
 /**
  * Moves the arm to a certain pose.
  * 
- * @param [in] targetPose The target pose at the end of the action.
+ * @param targetPose The target pose at the end of the action.
  * 
  * @return True if the movement succeeded, false otherwise.
  */
@@ -76,8 +76,8 @@ bool moveArmTo(geometry_msgs::Pose targetPose) {
  * Sends the given IO state to the given pin. Automatically uses the
  * SET_DIGITAL_OUT function.
  * 
- * @param [in] pin The pin the IO message should be sent to.
- * @param [in] state The state that should be sent to the pin.
+ * @param pin The pin the IO message should be sent to.
+ * @param state The state that should be sent to the pin.
  * 
  * @return True if the IO call succeeded, false otherwise.
  */

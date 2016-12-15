@@ -52,14 +52,6 @@ add_dependencies(arm_control
 	cucumber_msgs_generate_messages_cpp
 )
 
-add_executable(gripper_control src/gripper_control/node_gripper_control.cpp)
-target_link_libraries(gripper_control
-	${catkin_LIBRARIES}
-)
-add_dependencies(gripper_control
-	cucumber_msgs_generate_messages_cpp
-)
-
 #############
 ## Install ##
 #############
