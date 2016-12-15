@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
 	moveit_ros_planning
 	moveit_ros_planning_interface
 	moveit_msgs
+	
+	ur_msgs
 )
 
 find_package(Boost REQUIRED system filesystem date_time thread)
@@ -47,14 +49,6 @@ target_link_libraries(arm_control
 	${catkin_LIBRARIES}
 )
 add_dependencies(arm_control
-	cucumber_msgs_generate_messages_cpp
-)
-
-add_executable(gripper_control src/gripper_control/node_gripper_control.cpp)
-target_link_libraries(gripper_control
-	${catkin_LIBRARIES}
-)
-add_dependencies(gripper_control
 	cucumber_msgs_generate_messages_cpp
 )
 
