@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<!-- Launch file that starts the interface -->
+<launch>
+	<node name="settingsManager" pkg="kpr_interface" type="settingsManager.py"/>
+	<node name="interface" pkg="kpr_interface" type="interface.py" required="true"/>
+</launch>

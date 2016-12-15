@@ -3,6 +3,7 @@ project(kpr_arm_control)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
+	roslaunch
 	roscpp
 	cucumber_msgs
 	geometry_msgs
@@ -11,7 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
 	moveit_ros_planning
 	moveit_ros_planning_interface
 	moveit_msgs
-	
+	ur5_moveit_config
+
 	ur_msgs
 )
 
@@ -56,6 +58,8 @@ add_dependencies(arm_control
 #############
 ## Testing ##
 #############
+
+roslaunch_add_file_check(launch)
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_image_processing.cpp)

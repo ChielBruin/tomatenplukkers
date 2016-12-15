@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- Launch file that starts the arm and hardware control -->
+<launch>
+	<arg name="robot_ip" default="127.0.0.1"/>
+	<arg name="limited" default="true"/>
+	<arg name="testing" default="false"/>
+
+	<include file="$(find ur_bringup)/launch/ur5_bringup.launch"> 
+		<arg name="robot_ip" value="$(arg robot_ip)"/>
+		<arg name="limited" value="$(arg limited)"/>
+	</include>
+
+	<include file="$(find ur5_moveit_config)/launch/move_group.launch">
+		<arg name="limited" value="$(arg limited)"/>
+	</include>
+
+	<node name="armControl" pkg="kpr_arm_control" type="arm_control">
+		<remap if="$(arg testing)" from="set_io" to="set_io_testing"/>
+	</node>
+</launch>

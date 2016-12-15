@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!-- Launch file that starts a test version of the robot -->
+<launch>
+	<arg name="enable_gui" default="true"/>
+
+	<arg name="ursim"/>
+	<arg name="vnc-server" default="false"/>
+
+	<arg name="robot_ip" default="127.0.0.1"/>
+	<arg name="limited" default="true"/>
+
+	<arg name="cpu_mode" default="false"/>
+	<arg name="enable_faster_rcnn" default="true"/>
+
+	<!-- Launch the interface -->
+	<include if="$(arg enable_gui)" file="$(find kpr_interface)/launch/interface.launch"/>
+
+	<!-- Launch the test nodes -->
+	<include file="$(find kpr_testing)/launch/testing.launch">
+		<arg name="ursim" value="$(arg ursim)"/>
+		<arg name="vnc-server" value="$(arg vnc-server)"/>
+	</include>
+
+	<!-- Launch the hardware -->
+	<include file="$(find kpr_arm_control)/launch/hardware.launch">
+		<arg name="robot_ip" value="$(arg robot_ip)"/>
+		<arg name="limited" value="$(arg limited)"/>
+		<arg name="testing" value="true"/>
+	</include>
+
+	<!-- Launch fasterRCNN -->
+	<include if="$(arg enable_faster_rcnn)" file="$(find ros_faster_rcnn)/launch/faster_rcnn.launch">
+		<arg name="cpu_mode" value="$(arg cpu_mode)"/>
+	</include>
+
+	<!-- Launch main nodes -->
+	<include file="$(find kpr_image_processing)/launch/image_processing.launch"/>
+	<include file="$(find kpr_core)/launch/core.launch"/>
+</launch>

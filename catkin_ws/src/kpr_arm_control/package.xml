@@ -36,6 +36,8 @@
 	<run_depend>message_runtime</run_depend>
 
 	<run_depend>ur_msgs</run_depend>
+	<run_depend>ur_bringup</run_depend>
+	<run_depend>ur5_moveit_config</run_depend>
 
 	<run_depend>cucumber_msgs</run_depend>
 

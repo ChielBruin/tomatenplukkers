@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<!-- Launch file that starts the core nodes -->
+<launch>
+	<node name="core" pkg="kpr_core" type="core"/>
+</launch>
