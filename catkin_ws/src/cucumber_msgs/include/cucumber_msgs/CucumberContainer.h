@@ -4,9 +4,9 @@
 #include "cucumber_msgs/Cucumber.h"
 #include <math.h>
 
-#define EQ_DIST .2
-#define EQ_WEIGHT 30
-#define EQ_CURVE 1
+#define DISTANCE_THRESHOLD .2
+#define WEIGHT_THRESHOLD 30
+#define CURVATURE_THRESHOLD 1
 
 /**
  * Container class that stores a cucumbers data.
@@ -87,7 +87,7 @@ class CucumberContainer {
 	
 	/**
 	 * Check if the specified other cucumber is equal to this cucumber.
-	 * Equal, in this case, means that it lies within the bounds set by EQ_DIST, EQ_WEIGHT and EQ_CURVE.
+	 * Equal, in this case, means that it lies within the bounds set by DISTANCE_THRESHOLD, WEIGHT_THRESHOLD and CURVATURE_THRESHOLD.
 	 * @param other [CucumberContainer]: the cucumber to check with
 	 * @return True is they are equal, false otherwise
 	 */
@@ -96,9 +96,15 @@ class CucumberContainer {
 		float dy = this->y - other.y;
 		float dz = this->z - other.z;
 		
-		if (sqrt(dx*dx + dy*dy + dz*dz) > EQ_DIST) return false;
-		if (fabs(this->getWeight() - other.getWeight()) > EQ_WEIGHT) return false;
-		if (fabs(this->getCurvature() - other.getCurvature()) > EQ_CURVE) return false;
+		if (sqrt(dx*dx + dy*dy + dz*dz) > DISTANCE_THRESHOLD) {
+			return false;
+		}
+		if (fabs(this->getWeight() - other.getWeight()) > WEIGHT_THRESHOLD) {
+			return false;
+		}
+		if (fabs(this->getCurvature() - other.getCurvature()) > CURVATURE_THRESHOLD) {
+			return false;
+		}
 		
 		return true;
 	}
