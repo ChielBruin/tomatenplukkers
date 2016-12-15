@@ -12,3 +12,4 @@ byte OK = 0
 byte GRAB_ERR = 1
 byte CUTT_ERR = 2
 byte DROP_ERR = 3
+byte MOVE_ERR = 4
