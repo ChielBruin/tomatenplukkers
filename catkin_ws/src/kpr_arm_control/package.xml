@@ -24,6 +24,7 @@
 	<build_depend>message_generation</build_depend>
 
 	<build_depend>ur_msgs</build_depend>
+	<build_depend>ur5_moveit_config</build_depend>
 
 	<build_depend>moveit_core</build_depend>
 	<build_depend>moveit_msgs</build_depend>
