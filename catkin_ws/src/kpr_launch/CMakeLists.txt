@@ -26,16 +26,17 @@ catkin_package()
 ## Build ##
 ###########
 
-roslaunch_add_file_check(launch/robot.launch robot_ip=localhost)
-roslaunch_add_file_check(launch/testing.launch ursim=/home/kaspr/Downloads/ursim-3.0)
-
 #############
 ## Install ##
-#############]
+#############
 
 #############
 ## Testing ##
 #############
+
+# roslaunch_add_file_check(launch/robot.launch) # Test skipped because the check does not handle arguments.
+# roslaunch_add_file_check(launch/testing.launch) # Test skipped because the check does not handle arguments.
+roslaunch_add_file_check(launch/image_pipeline.launch)
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_image_processing.cpp)
