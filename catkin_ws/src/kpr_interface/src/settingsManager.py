@@ -1,18 +1,13 @@
 #!/usr/bin/env python
 
-import sys, rospy
+import sys, rospy, json, os
 from kpr_interface.msg import SetSetting
 from kpr_interface.srv import *
 from diagnostic_msgs.msg import KeyValue
 
 update_pub = rospy.Publisher('/settings/update', SetSetting, queue_size = 10)
 
-SETTINGS = {
-	'minWeight' 	: '300',
-	'maxWeight'		: '400',
-	'armSpeed'		: '100',
-	'maxCurvature'	: '100',
-}
+SETTINGS = { }
 
 def update() :
 	global update_pub
@@ -60,18 +55,79 @@ def getSettings(req) :
 		
 		data.append(setting)
 	return GetSettingsResponse(len(data), data)
-		
+	
+def parsePath(path):
+	'''
+	Parse the filepath and return the absolute position of this file.
 
-if __name__ == '__main__':
+	@param path The filepath to parse. 
+				When this file starts with a '/', it is treated as absolute, otherwise as relative.
+	@return The absolute filepath of the input file
+	'''
+	if path[0] == '/':
+		return path
+	else :
+		return os.path.join(os.path.dirname(__file__), path)
+	
+def saveSettings(req):
+	'''
+	Callback method for the service that saves all the current settings.
+
+	@param req The request message of the service
+	@return The Response message of the service
+	'''
+	global SETTINGS
+	try:
+		with open(parsePath(req.filePath), 'w') as fp:
+			json.dump(SETTINGS, fp)
+			rospy.loginfo("Settings saved to %s", req.filePath)
+		return SettingsIOResponse(SettingsIOResponse.OK)
+	except IOError as e:
+		rospy.logerr("Unable to save settings to %s", req.filePath)
+		rospy.logerr("-> %s", e)
+		return SettingsIOResponse(SettingsIOResponse.ERROR_WRITING_FILE)	
+
+def loadSettings(req):
+	'''
+	Callback method for the service that loads all the current settings.
+
+	@param req The request message of the service
+	@return The Response message of the service
+	'''
+	global SETTINGS
+	try:
+		with open(parsePath(req.filePath), 'r') as fp:
+			SETTINGS = json.load(fp)
+		rospy.loginfo("Settings loaded from %s", req.filePath)
+		return SettingsIOResponse(SettingsIOResponse.OK)	
+	except IOError as e:
+		rospy.logerr("Unable to load settings from %s", req.filePath)
+		rospy.logerr("-> %s", e)
+		return SettingsIOResponse(SettingsIOResponse.ERROR_READING_FILE)
+
+def main():
+	'''
+	The main method of the settingsManager.
+	Loads the default settings and starts all the ROS communications.
+	'''
 	rospy.init_node('settingsManager')
+	if (loadSettings(SettingsIORequest("../cfg/settings.json")).succes != SettingsIOResponse.OK):
+		return
+	
 	setter_sub = rospy.Subscriber('/settings/set', SetSetting, setSetting)
 	get_srv = rospy.Service('/settings/get', GetSetting, lambda req: GetSettingResponse(getValue(req.setting)))
 	get_srv = rospy.Service('/settings/getAll', GetSettings, getSettings)
+	
+	save_srv = rospy.Service('/settings/save', SettingsIO, saveSettings)
+	load_srv = rospy.Service('/settings/load', SettingsIO, loadSettings)
 	
 	rospy.loginfo('started')
 	update()
 	rospy.spin()
 	rospy.loginfo('stopped')
+	
+if __name__ == '__main__':	
+	main()
 	
 
 

@@ -1,0 +1,7 @@
+string filePath
+---
+uint8 succes
+
+uint8 OK=0
+uint8 ERROR_WRITING_FILE=1
+uint8 ERROR_READING_FILE=2
