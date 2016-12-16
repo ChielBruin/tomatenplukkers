@@ -99,6 +99,7 @@ def loadSettings(req):
 		with open(parsePath(req.filePath), 'r') as fp:
 			SETTINGS = json.load(fp)
 		rospy.loginfo("Settings loaded from %s", req.filePath)
+		update()
 		return SettingsIOResponse(SettingsIOResponse.OK)	
 	except IOError as e:
 		rospy.logerr("Unable to load settings from %s", req.filePath)
