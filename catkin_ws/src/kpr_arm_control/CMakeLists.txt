@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
 	moveit_ros_planning_interface
 	moveit_msgs
 
+	ur_bringup
 	ur5_moveit_config
 	ur_msgs
 )

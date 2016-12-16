@@ -38,9 +38,9 @@
 	<run_depend>ur_msgs</run_depend>
 	<run_depend>ur_bringup</run_depend>
 	<run_depend>ur5_moveit_config</run_depend>
-
-	<run_depend>cucumber_msgs</run_depend>
-
+	
 	<run_depend>moveit_core</run_depend>
 	<run_depend>moveit_msgs</run_depend>
+
+	<run_depend>cucumber_msgs</run_depend>
 </package>
