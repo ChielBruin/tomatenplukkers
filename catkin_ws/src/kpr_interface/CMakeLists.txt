@@ -3,6 +3,7 @@ project(kpr_interface)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
+	roslaunch
 	roscpp
 	message_generation
 	std_msgs
@@ -64,6 +65,8 @@ catkin_install_python(PROGRAMS src/interface.py
 #############
 ## Testing ##
 #############
+
+roslaunch_add_file_check(launch)
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_image_processing.cpp)

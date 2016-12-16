@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- Launch file that starts the testing nodes -->
+<launch>
+	<arg name="vnc-server" default="false"/>
+	<arg unless="$(arg vnc-server)" name="ursim" doc="The path to the ursim folder on the local filesystem."/>
+
+	<!-- Start the UR sim unless the user is running a vnc server (it would break) -->
+	<group unless="$(arg vnc-server)">
+		<node name="URsim" pkg="kpr_testing" type="URsim.sh" args="$(arg ursim)"/>
+	</group>
+
+	<!-- Start the node that simulates the IO pins of the UR5 -->
+	<node name="io_pins" pkg="kpr_testing" type="io_pins.py" output="screen" launch-prefix="gnome-terminal -x"/>
+</launch>
