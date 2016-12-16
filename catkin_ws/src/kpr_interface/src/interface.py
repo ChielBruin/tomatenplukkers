@@ -71,9 +71,13 @@ def saveSettings(entries):
 		rospy.logerr("Settings manager is offline, settings are not saved")		
 	
 def storeSettings():
+	'''
+	Asks the user for a file location and stores all the settings there.
+	'''
 	try:
 		path = tkfd.asksaveasfilename(defaultextension=".json")
-		# TODO: check empty input
+		if not path:
+			return
 		rospy.wait_for_service('settings/save', timeout = 5)
 		rospy.ServiceProxy('settings/save', SettingsIO)(path)
 	except Exception as e:
@@ -81,9 +85,13 @@ def storeSettings():
 		rospy.logerr("-> %s", e)
 		
 def loadSettings():
+	'''
+	Asks the user for a file location and load all the settings stored there.
+	'''
 	try:
 		path = tkfd.askopenfilename(defaultextension=".json")
-		# TODO: check empty input
+		if not path:
+			return
 		rospy.wait_for_service('settings/load', timeout = 5)
 		rospy.ServiceProxy('settings/load', SettingsIO)(path)
 	except Exception as e:
