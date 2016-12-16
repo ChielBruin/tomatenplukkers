@@ -6,6 +6,7 @@ import datetime
 import os
 
 from Tkinter import *
+import tkFileDialog as tkfd
 from PIL import ImageTk
 import PIL.Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -71,19 +72,23 @@ def saveSettings(entries):
 	
 def storeSettings():
 	try:
-		path = "/home/chiel/Downloads/banaan.json"
+		path = tkfd.asksaveasfilename(defaultextension=".json")
+		# TODO: check empty input
 		rospy.wait_for_service('settings/save', timeout = 5)
 		rospy.ServiceProxy('settings/save', SettingsIO)(path)
-	except:
-		rospy.logerr("Error while loading settings")
+	except Exception as e:
+		rospy.logerr("Error while storing settings")
+		rospy.logerr("-> %s", e)
 		
 def loadSettings():
 	try:
-		path = "/home/chiel/Downloads/banaan.json"
+		path = tkfd.askopenfilename(defaultextension=".json")
+		# TODO: check empty input
 		rospy.wait_for_service('settings/load', timeout = 5)
 		rospy.ServiceProxy('settings/load', SettingsIO)(path)
-	except:
+	except Exception as e:
 		rospy.logerr("Error while loading settings")
+		rospy.logerr("-> %s", e)
 	
 # Displays a list of all settings on the screen
 # root: The node to display all settings on
