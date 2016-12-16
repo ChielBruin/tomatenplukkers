@@ -26,7 +26,8 @@ catkin_package()
 ## Build ##
 ###########
 
-roslaunch_add_file_check(launch)
+roslaunch_add_file_check(launch/robot.launch robot_ip=localhost)
+roslaunch_add_file_check(launch/testing.launch ursim=/home/kaspr/Downloads/ursim-3.0)
 
 #############
 ## Install ##

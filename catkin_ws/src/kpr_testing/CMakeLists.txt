@@ -49,7 +49,7 @@ catkin_install_python(PROGRAMS src/io_pins.py
 ## Testing ##
 #############
 
-roslaunch_add_file_check(launch)
+roslaunch_add_file_check(launch ursim=/home/kaspr/Downloads/ursim-3.0)
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_kpr_testing.cpp)
