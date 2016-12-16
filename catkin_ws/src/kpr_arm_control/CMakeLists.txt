@@ -5,6 +5,7 @@ project(kpr_arm_control)
 find_package(catkin REQUIRED COMPONENTS
 	roslaunch
 	roscpp
+
 	cucumber_msgs
 	geometry_msgs
 
@@ -12,8 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
 	moveit_ros_planning
 	moveit_ros_planning_interface
 	moveit_msgs
-	ur5_moveit_config
 
+	ur5_moveit_config
 	ur_msgs
 )
 

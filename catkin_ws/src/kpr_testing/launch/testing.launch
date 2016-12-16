@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!-- Launch file that starts the testing nodes -->
 <launch>
-	<arg name="ursim"/>
 	<arg name="vnc-server" default="false"/>
+	<arg unless="$(arg vnc-server)" name="ursim" doc="The path to the ursim folder on the local filesystem."/>
 
 	<!-- Start the UR sim unless the user is running a vnc server (it would break) -->
 	<group unless="$(arg vnc-server)">

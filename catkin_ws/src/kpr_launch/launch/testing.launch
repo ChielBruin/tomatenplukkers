@@ -22,7 +22,7 @@
 	</include>
 
 	<!-- Launch the hardware -->
-	<include file="$(find kpr_arm_control)/launch/hardware.launch">
+	<include file="$(find kpr_arm_control)/launch/arm.launch">
 		<arg name="robot_ip" value="$(arg robot_ip)"/>
 		<arg name="limited" value="$(arg limited)"/>
 		<arg name="testing" value="true"/>
