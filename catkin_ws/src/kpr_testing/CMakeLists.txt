@@ -3,7 +3,8 @@ project(kpr_testing)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
-  rospy
+	roslaunch
+	rospy
 )
 
 
@@ -47,6 +48,8 @@ catkin_install_python(PROGRAMS src/io_pins.py
 #############
 ## Testing ##
 #############
+
+#roslaunch_add_file_check(launch/testing.launch) # Test skipped because the check does not handle arguments.
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_kpr_testing.cpp)

@@ -3,6 +3,7 @@ project(kpr_core)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
+	roslaunch
 	roscpp
 	std_msgs
 	geometry_msgs
@@ -53,6 +54,8 @@ add_dependencies(core
 #############
 ## Testing ##
 #############
+
+roslaunch_add_file_check(launch)
 
 catkin_add_gtest(core-test test/test_core.cpp)
 	target_link_libraries(core-test ${catkin_LIBRARIES})
