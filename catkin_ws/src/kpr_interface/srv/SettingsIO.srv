@@ -1,0 +1,9 @@
+# Filepath to store the file to or load it from
+string filePath
+---
+# A status code that indicates the success of the operation
+uint8 success
+
+uint8 OK=0
+uint8 ERROR_WRITING_FILE=1
+uint8 ERROR_READING_FILE=2
