@@ -25,11 +25,12 @@ std::map<ros::Time, stereo_msgs::DisparityImage> disparity;
 CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::DisparityImage disparity) {
 	CucumberContainer tmp = CucumberContainer(in);
 	int x = in.image_stem_position[0];
+	ROS_INFO("%f" , x);
 	int y = in.image_stem_position[1];	
 	float B = disparity.T;
 	float pixel_size = 4.65e-6;
 	float f = disparity.f;
-	int d = disparity.image.data[disparity.image.step*y-48+x*disparity.image.step/disparity.image.width];
+	int d = disparity.image.data[disparity.image.step*y+48+x*disparity.image.step/disparity.image.width];
 	if(camera == CAM_LEFT) {
 		float Z = f*B/d;
 		float X = x*Z/f;
