@@ -112,7 +112,7 @@ def main():
 	Loads the default settings and starts all the ROS communications.
 	'''
 	rospy.init_node('settingsManager')
-	if (loadSettings(SettingsIORequest("../cfg/settings.json")).succes != SettingsIOResponse.OK):
+	if (loadSettings(SettingsIORequest("../cfg/settings.json")).success != SettingsIOResponse.OK):
 		return
 	
 	setter_sub = rospy.Subscriber('/settings/set', SetSetting, setSetting)
