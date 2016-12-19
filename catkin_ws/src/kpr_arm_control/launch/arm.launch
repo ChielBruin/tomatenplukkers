@@ -4,6 +4,7 @@
 	<arg name="robot_ip" default="127.0.0.1"/>
 	<arg name="limited" default="true"/>
 	<arg name="testing" default="false"/>
+	<arg name="enable_rviz" default="false"/>
 
 	<include file="$(find ur_bringup)/launch/ur5_bringup.launch"> 
 		<arg name="robot_ip" value="$(arg robot_ip)"/>
@@ -17,4 +18,9 @@
 	<node name="armControl" pkg="kpr_arm_control" type="arm_control">
 		<remap if="$(arg testing)" from="set_io" to="set_io_testing"/>
 	</node>
+
+	<include if="$(arg enable_rviz)" file="$(find ur5_moveit_config)/launch/moveit_rviz.launch">
+		<arg name="config" value="true"/>
+		<arg name="debug" value="false"/>
+	</include>
 </launch>
