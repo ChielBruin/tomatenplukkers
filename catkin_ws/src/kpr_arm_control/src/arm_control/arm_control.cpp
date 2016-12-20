@@ -17,6 +17,7 @@ using namespace ros;
 typedef std::shared_ptr<moveit::planning_interface::MoveGroup> MoveGroupPtr;
 typedef std::shared_ptr<moveit::planning_interface::PlanningSceneInterface> PlanningSceneInterfacePtr;
 
+/** Definitions related to the output pins */
 const uint8_t VACUUM_PIN = 0x1;
 const uint8_t GRIPPER_PIN = 0x2;
 const uint8_t CUTTER_PIN = 0x4;
@@ -25,6 +26,25 @@ const float GRIPPER_CLOSE = 0x0;
 const float GRIPPER_OPEN = 0x1;
 const float CUTTER_CLOSE = 0x1;
 const float CUTTER_OPEN = 0x0;
+const float VACUUM_ON = 0X1;
+const float VACUUM_OFF = 0X0;
+
+/** Definitions related to the input pins */
+const uint8_t PRESSURE_PIN = 0x1; 
+const uint8_t CUT_CLOSED_PIN = 0x2; 
+const uint8_t CUT_OPEN_PIN = 0x3; 
+//TODO  add definition for the sensor related to the gripper
+
+bool pinstates[] = {false, false, true};
+#define PRESSURE_STATE 0
+///pinstates[PRESSURE_STATE];
+#define CUT_CLOSED_STATE 1
+///pinstates[CUT_CLOSED_STATE];
+#define CUT_OPEN_STATE 2
+///pinstates[CUT_OPEN_STATE];
+
+
+
 
 ServiceClient io_state_client;
 MoveGroupPtr move_group_ptr;
@@ -90,27 +110,90 @@ bool sendIO(int8_t pin, float state) {
 }
 
 /**
+ * Function which checks whether the previously changed output has the desired effect.
+ * It makes sure that the value checked is indeed the response of the new sensor and 
+ * not the old response, since it is internally updated at f = 10 Hz. 
+ * 
+ * @param sensor The sensor which output needs to be read.
+ * @param pinstates[] Vector of the outputs, which contains the latest data from the sensors.
+ * 
+ * @return Passes the boolean value received from the sensors.
+ */
+bool readDigInput(int sensor, bool pinstates[]) {
+	bool success = false;
+	
+	Time time = Time::now();
+	while (Time::now() <= (time + Duration(0.1))) {
+		if (pinstates[sensor]) {
+			ROS_DEBUG("The command has been successfully perforemd, according to the input");
+			success = true;
+			break;
+		}
+		else {
+			ROS_DEBUG("The command has not been successfully perforemd, according to the input");
+		}
+	}
+	return success;
+}
+
+
+
+
+/**
  * Sends the necessary IO message to close the gripper.
  * @return True if the IO call succeeded, false otherwise.
  */
 bool startGrip() {
-	bool success = sendIO(GRIPPER_PIN, GRIPPER_CLOSE);
+	if (!sendIO(GRIPPER_PIN, GRIPPER_CLOSE)) {
+		return false;
+	}
+	ROS_DEBUG("Open command has been send to the gripper");
+	
 	//TODO Wait for IO to confirm the gripper has closed.
 	// Attempt to close multiple times in slightly different conditions
 	// if it failed.
-	return success;
+	return true;
 }
 
 /**
  * Sends the necessary IO message to do a cut.
- * @return True if the IO call succeeded, false otherwise.
+ * @return True if the IO calls succeeded and the sensors confirm the expected result, false otherwise.
  */
 bool cut() {
 	if (!sendIO(CUTTER_PIN, CUTTER_CLOSE)) {
 		return false;
 	}
-	//TODO Add wait for IO to confirm the cutter has closed.
-	return sendIO(CUTTER_PIN, CUTTER_OPEN);
+	ROS_DEBUG("Close command has been send to the cutter");
+	
+	bool success = false;
+	for (int tries = 0; tries <= 10; tries++) {
+		success = readDigInput(CUT_CLOSED_STATE, pinstates);
+		if (success) {
+			break; 
+		}
+			ROS_DEBUG("Cutter is not open according to IO and a new attempt would need to be made");
+			//TODO Add new commands due to failed attempt.
+	}
+	if (success == false) {
+		return false;
+	}
+		
+	if (!sendIO(CUTTER_PIN, CUTTER_OPEN)) {
+		return false;
+	}
+	ROS_DEBUG("Open command has been send to the cutter");
+
+	for (int tries = 0; tries <= 10; tries++) {
+		success = readDigInput(CUT_OPEN_STATE, pinstates);
+		if (success) {
+			break; 
+		}
+			ROS_DEBUG("Cutter is not open according to IO and a new attempt would need to be made");
+			//TODO Add new command due to failed attempt.
+	}
+	if (success == false) {
+		return false;
+	}
 }
 
 /**
@@ -118,5 +201,49 @@ bool cut() {
  * @return True if the IO call succeeded, false otherwise.
  */
 bool releaseGrip() {
-	return sendIO(GRIPPER_PIN, GRIPPER_OPEN);
+	if (!sendIO(GRIPPER_PIN, GRIPPER_OPEN)) {
+		return false;
+	}
+	//TODO Wait for IO to confirm the gripper has closed.
+}
+
+/**
+ * Sends the necessary IO message to enable the vacuum suction.
+ * @return True if the IO call succeeded and the sensor confirms the expected result, false otherwise.
+ */
+bool startVacuum() {
+	if (!sendIO(VACUUM_PIN, VACUUM_ON)) {
+		return false;
+	}
+	
+	bool success = false;
+	for (int tries = 0; tries <= 10; tries++) {
+		success = readDigInput(PRESSURE_STATE, pinstates);
+		if (success) {
+			return true;
+			break; 
+		}
+			ROS_DEBUG("Suction is not correct according to IO and a new attempt would need to be made");
+			//TODO Add new commands due to failed attempt.
+	}
+	if (success == false) {
+		return false;
+	}
+}
+
+/**
+ * Sends the necessary IO message to disable the vacuum suction.
+ * @return True if the IO call succeeded and the sensor confirms the expected result, false otherwise.
+ */
+bool stopVacuum() {
+	if (!sendIO(VACUUM_PIN, VACUUM_OFF)) {
+		return false;
+	}
+	
+	bool success = readDigInput(PRESSURE_STATE, pinstates);
+	if (success == false) {
+		return true; /**AKA no vacuum measured, as was expected */
+	}
+	ROS_WARN("The vacuum should have been 'turned off', but the sensor still measured a vacuum.");
+	return false;
 }

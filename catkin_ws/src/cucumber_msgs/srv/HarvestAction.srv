@@ -13,3 +13,5 @@ byte GRAB_ERR = 1
 byte CUTT_ERR = 2
 byte DROP_ERR = 3
 byte MOVE_ERR = 4
+byte VACU_ERR = 5
+byte NOVAC_ERR = 6

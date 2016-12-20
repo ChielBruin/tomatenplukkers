@@ -9,6 +9,8 @@
 #include "geometry_msgs/Quaternion.h"
 
 #include <ur_msgs/SetIO.h>
+#include <ur_msgs/IOStates.h>
+#include <ur_msgs/Digital.h>
 
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
@@ -22,9 +24,10 @@ const std::string move_group_name("manipulator");
  * Attempts to pick a cucumber. This function does the following things:
  * - It attempts to move the arm to the location of the cucumber.
  * - It attempts to grip the cucumber.
+ * - It attempts to attach to the cucumber via a suction cap.
  * - It attempts to cut the stem of the cucumber.
  * - It attempts to move the arm to the drop-off location.
- * - It attempts to let the cucumber go.
+ * - It attempts to let go of the cucumber.
  * 
  * @param msg The Request to pick a certain cucumber.
  * @param response The Response that will be sent to the client.
@@ -55,7 +58,12 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 	}
 	ROS_DEBUG("Grip done.");
 
-	//TODO Attempt to attach the suction cup to the cucumber.
+	success = startVacuum();
+	if (!success) {
+		response.status = response.VACU_ERR;
+		ROS_ERROR("Generating a vacuum has failed!");
+		return true;
+	}
 
 	success = cut();
 	if (!success) {
@@ -72,6 +80,13 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		return true;
 	}
 	ROS_DEBUG("Move arm back done.");
+
+	success = stopVacuum();
+	if (!success) {
+		response.status = response.NOVAC_ERR;
+		ROS_ERROR("Stopping the vacuum has failed!");
+		return true;
+	}
 
 	success = releaseGrip();
 	if (!success) {
@@ -103,6 +118,16 @@ void setupMoveIt(NodeHandle n) {
 }
 
 /**
+ * Calls the latest state of all IO-ports and the relevant inputs are passed to the vector pinstates.
+ */
+void getIOStates(const ur_msgs::IOStates msg) {
+	std::vector<ur_msgs::Digital> digitalPins = msg.digital_in_states;
+	pinstates[PRESSURE_STATE] = digitalPins[PRESSURE_PIN].state;
+	pinstates[CUT_CLOSED_STATE] = digitalPins[CUT_CLOSED_PIN].state;
+	pinstates[CUT_OPEN_STATE] = digitalPins[CUT_OPEN_PIN].state;
+}
+
+/**
  * Starts the arm control node. It does not require any command line parameters.
  * 
  * @param argc The amount of parameters.
@@ -117,6 +142,8 @@ int main(int argc, char **argv) {
 
 	ServiceServer cucumberService = n.advertiseService("target/cucumber", getCucumber);
 	io_state_client = n.serviceClient<ur_msgs::SetIO>("set_io");
+	
+	Subscriber sub_io_states = n.subscribe("io_states", 1, getIOStates);
 
 	setupMoveIt(n);
 
