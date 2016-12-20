@@ -188,9 +188,7 @@ bool cut() {
 			ROS_DEBUG("Cutter is not open according to IO and a new attempt would need to be made");
 			//TODO Add new command due to failed attempt.
 	}
-	if (!success) {
-		return false;
-	}
+	return false;
 }
 
 /**
