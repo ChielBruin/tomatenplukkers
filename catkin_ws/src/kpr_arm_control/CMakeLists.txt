@@ -21,6 +21,8 @@ find_package(catkin REQUIRED COMPONENTS
 	ur_bringup
 	ur5_moveit_config
 	ur_msgs
+
+	rviz
 )
 
 catkin_python_setup()
