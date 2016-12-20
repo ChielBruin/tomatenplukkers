@@ -3,25 +3,17 @@
 import rospy
 import smach
 import smach_ros
-
-class CreatePath(smach.State):
-	def __init__(self):
-		smach.State.__init__(self, outcomes=['PathFound', 'NoPath'])
-
-	def execute(self, userdata):
-		rospy.loginfo('Executing state CreatePath')
-		if True:
-			return 'PathFound'
-		else:
-			return 'NoPath'
+from geometry_msgs.msg import Quaternion, Pose
 
 class MoveToCucumber(smach.State):
-	def __init__(self):
-		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'])
+	def __init__(self, moveArmTo):
+		self.moveArmTo = moveArmTo
+		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'], input_keys=['data'])
 
 	def execute(self, userdata):
 		rospy.loginfo('Executing state MoveToCucumber')
-		if True:
+		pose = Pose(userdata.data.cucumber.stem_position, Quaternion(0,0,0,1))
+		if self.moveArmTo(pose):
 			return 'MoveOK'
 		else:
 			return 'MoveError'
@@ -60,12 +52,13 @@ class Cut(smach.State):
 			return 'CutterError'
 
 class MoveToDropoff(smach.State):
-	def __init__(self):
-		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'])
+	def __init__(self, moveArmTo):
+		self.moveArmTo = moveArmTo
+		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'], input_keys=['data'])
 
 	def execute(self, userdata):
 		rospy.loginfo('Executing state MoveToDropoff')
-		if True:
+		if self.moveArmTo(userdata.data.dropLocation):
 			return 'MoveOK'
 		else:
 			return 'MoveError'
@@ -82,12 +75,13 @@ class OpenGripper(smach.State):
 			return 'GripperError'
 
 class MoveToStart(smach.State):
-	def __init__(self):
-		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'])
+	def __init__(self, moveArmTo):
+		self.moveArmTo = moveArmTo
+		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'], input_keys=['start'])
 
 	def execute(self, userdata):
 		rospy.loginfo('Executing state MoveToStart')
-		if True:
+		if self.moveArmTo(userdata.start):
 			return 'MoveOK'
 		else:
 			return 'MoveError'
