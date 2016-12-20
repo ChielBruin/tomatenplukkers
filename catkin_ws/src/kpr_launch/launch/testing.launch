@@ -26,6 +26,7 @@
 		<arg name="robot_ip" value="$(arg robot_ip)"/>
 		<arg name="limited" value="$(arg limited)"/>
 		<arg name="testing" value="true"/>
+		<arg name="enable_rviz" value="true"/>
 	</include>
 
 	<!-- Launch fasterRCNN -->
