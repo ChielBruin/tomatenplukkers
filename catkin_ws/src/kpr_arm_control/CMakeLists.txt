@@ -5,6 +5,9 @@ project(kpr_arm_control)
 find_package(catkin REQUIRED COMPONENTS
 	roslaunch
 	roscpp
+	rospy
+	smach
+	smach_ros
 
 	cucumber_msgs
 	geometry_msgs
@@ -19,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
 	ur_msgs
 )
 
+catkin_python_setup()
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
@@ -52,6 +56,10 @@ target_link_libraries(arm_control
 add_dependencies(arm_control
 	cucumber_msgs_generate_messages_cpp
 )
+
+
+catkin_install_python(PROGRAMS src/py_arm_control/arm_control.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 #############
 ## Install ##
