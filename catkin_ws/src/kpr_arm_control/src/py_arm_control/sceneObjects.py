@@ -21,9 +21,6 @@ def table():
 	tableBox = SolidPrimitive()
 	tableBox.type = tableBox.BOX
 	tableBox.dimensions = [1.5,1,0.1]
-	#tableBox.dimensions[tableBox.BOX_X] = 1.5
-	#tableBox.dimensions[tableBox.BOX_Y] = 1
-	#tableBox.dimensions[tableBox.BOX_Z] = 0.1
 
 	table.object.primitives.append(tableBox)
 	table.object.primitive_poses.append(tablePose)
@@ -36,9 +33,6 @@ def table():
 	backpanelBox = SolidPrimitive()
 	backpanelBox.type = backpanelBox.BOX
 	backpanelBox.dimensions = [1.5,0.1,1]
-	#backpanelBox.dimensions[backpanelBox.BOX_X] = 1.5
-	#backpanelBox.dimensions[backpanelBox.BOX_Y] = 0.1
-	#backpanelBox.dimensions[backpanelBox.BOX_Z] = 1
 
 	table.object.primitives.append(backpanelBox)
 	table.object.primitive_poses.append(backpanelPose)
@@ -46,5 +40,24 @@ def table():
 
 	return table
 
-def endEffector():
-	return None
+def endEffector(group):
+	endEffector = AttachedCollisionObject()
+	endEffector.link_name = group.get_end_effector_link()
+	endEffector.object.header.frame_id = "end_effector_attach"
+	endEffector.object.id = "end_effector"
+
+	# Translates the end effector to the end of the arm.
+	# Should not be necessary but currently the built-in translation breaks.
+	# TODO: Make sure the built-in translation is used instead of this work around.
+	eePose = group.get_current_pose().pose
+	eePose.position.z -= 0.06
+
+	eeBox = SolidPrimitive()
+	eeBox.type = eeBox.BOX
+	eeBox.dimensions = [0.12, 0.075, 0.075]
+
+	endEffector.object.primitives.append(eeBox)
+	endEffector.object.primitive_poses.append(eePose)
+	endEffector.object.operation = endEffector.object.ADD
+
+	return endEffector

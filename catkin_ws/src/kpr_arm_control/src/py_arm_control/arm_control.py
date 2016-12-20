@@ -77,10 +77,12 @@ def getCucumberCallback (req):
 	return HarvestActionResponse(success[outcome])
 
 def addSceneObjects(aco_publisher):
+	global group
 	aco_publisher.publish(sceneObj.table())
-	#aco_publisher.publish(sceneObj.endEffector())
+	aco_publisher.publish(sceneObj.endEffector(group))
 	
 def setupMoveIt():
+	#rospy.sleep(5)
 	moveit_commander.roscpp_initialize(sys.argv)
 	robot = moveit_commander.RobotCommander()
 	scene = moveit_commander.PlanningSceneInterface()
@@ -96,4 +98,5 @@ if __name__ == '__main__':
 	rospy.loginfo("Started")
 	addSceneObjects(aco_pub)
 	rospy.spin()
+	moveit_commander.roscpp_shutdown()
 	rospy.loginfo("Stopped")
