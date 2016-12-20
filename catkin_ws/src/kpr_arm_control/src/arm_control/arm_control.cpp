@@ -40,11 +40,10 @@ bool pinstates[] = {false, false, true};
 #define CUT_CLOSED_STATE 1
 #define CUT_OPEN_STATE 2
 
-const bool expectedValues[] = {true, false, true, true};
-#define EXPECT_VAC 0
-#define EXPECT_NOVAC 1
-#define EXPECT_CUT_OPEN 2
-#define EXPECT_CUT_CLOSED 3
+#define EXPECT_VAC true
+#define EXPECT_NOVAC false
+#define EXPECT_CUT_OPEN true
+#define EXPECT_CUT_CLOSED true
 
 const uint8_t nrOfAttemps = 10;
 
@@ -128,7 +127,6 @@ bool readDigInput(int sensor, bool expect) {
 		if (pinstates[sensor] == expect) {
 			ROS_DEBUG("The command has been successfully performed, according to the input");
 			return true;
-			break;
 		}
 		else {
 			ROS_DEBUG("The command has not been successfully performed, according to the input");
@@ -165,7 +163,7 @@ bool cut() {
 	
 	bool success = false;
 	for (int tries = 0; tries <= nrOfAttemps; tries++) {
-		success = readDigInput(CUT_CLOSED_STATE, expectedValues[EXPECT_CUT_CLOSED]);
+		success = readDigInput(CUT_CLOSED_STATE, EXPECT_CUT_CLOSED);
 		if (success) {
 			break; 
 		}
@@ -182,7 +180,7 @@ bool cut() {
 	ROS_DEBUG("Open command has been send to the cutter");
 
 	for (int tries = 0; tries <= nrOfAttemps; tries++) {
-		if (readDigInput(CUT_OPEN_STATE, expectedValues[EXPECT_CUT_OPEN])) {
+		if (readDigInput(CUT_OPEN_STATE, EXPECT_CUT_OPEN)) {
 			return true; 
 		}
 			ROS_DEBUG("Cutter is not open according to IO and a new attempt would need to be made");
@@ -213,7 +211,7 @@ bool startVacuum() {
 	}
 
 	for (int tries = 0; tries <= nrOfAttemps; tries++) {
-		if (readDigInput(PRESSURE_STATE, expectedValues[EXPECT_VAC])) {
+		if (readDigInput(PRESSURE_STATE, EXPECT_VAC)) {
 			return true;
 		}
 			ROS_DEBUG("Suction is not correct according to IO and a new attempt would need to be made");
@@ -231,7 +229,7 @@ bool stopVacuum() {
 		return false;
 	}
 	
-	if (!readDigInput(PRESSURE_STATE, expectedValues[EXPECT_NOVAC])) {
+	if (!readDigInput(PRESSURE_STATE, EXPECT_NOVAC)) {
 		ROS_WARN("The vacuum should have been 'turned off', but the sensor still measured a vacuum.");
 		return false;
 	}
