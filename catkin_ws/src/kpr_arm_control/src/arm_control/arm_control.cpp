@@ -37,13 +37,16 @@ const uint8_t CUT_OPEN_PIN = 0x3;
 
 bool pinstates[] = {false, false, true};
 #define PRESSURE_STATE 0
-///pinstates[PRESSURE_STATE];
 #define CUT_CLOSED_STATE 1
-///pinstates[CUT_CLOSED_STATE];
 #define CUT_OPEN_STATE 2
-///pinstates[CUT_OPEN_STATE];
 
+const bool expectedValues[] = {true, false, true, true};
+#define EXPECT_VAC 0
+#define EXPECT_NOVAC 1
+#define EXPECT_CUT_OPEN 2
+#define EXPECT_CUT_CLOSED 3
 
+const uint8_t nrOfAttemps = 10;
 
 
 ServiceClient io_state_client;
@@ -115,29 +118,24 @@ bool sendIO(int8_t pin, float state) {
  * not the old response, since it is internally updated at f = 10 Hz. 
  * 
  * @param sensor The sensor which output needs to be read.
- * @param pinstates[] Vector of the outputs, which contains the latest data from the sensors.
+ * @param expect The value expected from the sensor.
  * 
  * @return Passes the boolean value received from the sensors.
  */
-bool readDigInput(int sensor, bool pinstates[]) {
-	bool success = false;
-	
+bool readDigInput(int sensor, bool expect) {
 	Time time = Time::now();
 	while (Time::now() <= (time + Duration(0.1))) {
-		if (pinstates[sensor]) {
-			ROS_DEBUG("The command has been successfully perforemd, according to the input");
-			success = true;
+		if (pinstates[sensor] == expect) {
+			ROS_DEBUG("The command has been successfully performed, according to the input");
+			return true;
 			break;
 		}
 		else {
-			ROS_DEBUG("The command has not been successfully perforemd, according to the input");
+			ROS_DEBUG("The command has not been successfully performed, according to the input");
 		}
 	}
-	return success;
+	return false;
 }
-
-
-
 
 /**
  * Sends the necessary IO message to close the gripper.
@@ -166,15 +164,15 @@ bool cut() {
 	ROS_DEBUG("Close command has been send to the cutter");
 	
 	bool success = false;
-	for (int tries = 0; tries <= 10; tries++) {
-		success = readDigInput(CUT_CLOSED_STATE, pinstates);
+	for (int tries = 0; tries <= nrOfAttemps; tries++) {
+		success = readDigInput(CUT_CLOSED_STATE, expectedValues[EXPECT_CUT_CLOSED]);
 		if (success) {
 			break; 
 		}
 			ROS_DEBUG("Cutter is not open according to IO and a new attempt would need to be made");
 			//TODO Add new commands due to failed attempt.
 	}
-	if (success == false) {
+	if (!success) {
 		return false;
 	}
 		
@@ -183,15 +181,14 @@ bool cut() {
 	}
 	ROS_DEBUG("Open command has been send to the cutter");
 
-	for (int tries = 0; tries <= 10; tries++) {
-		success = readDigInput(CUT_OPEN_STATE, pinstates);
-		if (success) {
-			break; 
+	for (int tries = 0; tries <= nrOfAttemps; tries++) {
+		if (readDigInput(CUT_OPEN_STATE, expectedValues[EXPECT_CUT_OPEN])) {
+			return true; 
 		}
 			ROS_DEBUG("Cutter is not open according to IO and a new attempt would need to be made");
 			//TODO Add new command due to failed attempt.
 	}
-	if (success == false) {
+	if (!success) {
 		return false;
 	}
 }
@@ -205,6 +202,7 @@ bool releaseGrip() {
 		return false;
 	}
 	//TODO Wait for IO to confirm the gripper has closed.
+	return true;
 }
 
 /**
@@ -215,20 +213,15 @@ bool startVacuum() {
 	if (!sendIO(VACUUM_PIN, VACUUM_ON)) {
 		return false;
 	}
-	
-	bool success = false;
-	for (int tries = 0; tries <= 10; tries++) {
-		success = readDigInput(PRESSURE_STATE, pinstates);
-		if (success) {
+
+	for (int tries = 0; tries <= nrOfAttemps; tries++) {
+		if (readDigInput(PRESSURE_STATE, expectedValues[EXPECT_VAC])) {
 			return true;
-			break; 
 		}
 			ROS_DEBUG("Suction is not correct according to IO and a new attempt would need to be made");
 			//TODO Add new commands due to failed attempt.
 	}
-	if (success == false) {
-		return false;
-	}
+	return false;
 }
 
 /**
@@ -240,10 +233,10 @@ bool stopVacuum() {
 		return false;
 	}
 	
-	bool success = readDigInput(PRESSURE_STATE, pinstates);
-	if (success == false) {
-		return true; /**AKA no vacuum measured, as was expected */
+	if (!readDigInput(PRESSURE_STATE, expectedValues[EXPECT_NOVAC])) {
+		ROS_WARN("The vacuum should have been 'turned off', but the sensor still measured a vacuum.");
+		return false;
 	}
-	ROS_WARN("The vacuum should have been 'turned off', but the sensor still measured a vacuum.");
-	return false;
+	//TODO Could require mutliple attempts, if the sensor does not confirm with the expected value.
+	return true;
 }
