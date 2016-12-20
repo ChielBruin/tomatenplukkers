@@ -17,6 +17,10 @@ using namespace ros;
 typedef std::shared_ptr<moveit::planning_interface::MoveGroup> MoveGroupPtr;
 typedef std::shared_ptr<moveit::planning_interface::PlanningSceneInterface> PlanningSceneInterfacePtr;
 
+ServiceClient io_state_client;
+MoveGroupPtr move_group_ptr;
+PlanningSceneInterfacePtr planning_scene_interface_ptr;
+
 /** Definitions related to the output pins */
 const uint8_t VACUUM_PIN = 0x1;
 const uint8_t GRIPPER_PIN = 0x2;
@@ -47,11 +51,6 @@ bool pinstates[] = {false, false, true};
 
 const uint8_t nrOfAttemps = 10;
 
-
-ServiceClient io_state_client;
-MoveGroupPtr move_group_ptr;
-PlanningSceneInterfacePtr planning_scene_interface_ptr;
-
 /**
  * Moves the arm to a certain pose.
  * 
@@ -76,7 +75,8 @@ bool moveArmTo(geometry_msgs::Pose targetPose) {
 		if (distance > 0.8) {
 			ROS_ERROR("Planning failed because location was out of reach.");
 		} else if (distance < 0.25) {
-			ROS_ERROR("Planning failed because location was probably too close to the base");
+			ROS_ERROR("Planning failed because location was probably too close "
+					"to the base");
 		} else {
 			ROS_ERROR("Could not plan a move; move is probably impossible.");
 		}
@@ -87,7 +87,7 @@ bool moveArmTo(geometry_msgs::Pose targetPose) {
 		return true;
 	} else {
 		ROS_ERROR("Could not move the robot after move plan was obtained.");
-		ROS_ERROR("MoveIt! returned error code %d. For the meaning of this"
+		ROS_ERROR("MoveIt! returned error code %d. For the meaning of this "
 				"error visit http://docs.ros.org/jade/api/moveit_msgs/html"
 				"/msg/MoveItErrorCodes.html", errorCode.val);
 		return false;
@@ -125,11 +125,13 @@ bool readDigInput(int sensor, bool expect) {
 	Time time = Time::now();
 	while (Time::now() <= (time + Duration(0.1))) {
 		if (pinstates[sensor] == expect) {
-			ROS_DEBUG("The command has been successfully performed, according to the input");
+			ROS_DEBUG("The command has been successfully performed, according "
+					"to the input");
 			return true;
 		}
 		else {
-			ROS_DEBUG("The command has not been successfully performed, according to the input");
+			ROS_DEBUG("The command has not been successfully performed, "
+					"according to the input");
 		}
 	}
 	return false;
@@ -144,7 +146,7 @@ bool startGrip() {
 		return false;
 	}
 	ROS_DEBUG("Open command has been send to the gripper");
-	
+
 	//TODO Wait for IO to confirm the gripper has closed.
 	// Attempt to close multiple times in slightly different conditions
 	// if it failed.
@@ -153,27 +155,29 @@ bool startGrip() {
 
 /**
  * Sends the necessary IO message to do a cut.
- * @return True if the IO calls succeeded and the sensors confirm the expected result, false otherwise.
+ * @return True if the IO calls succeeded and the sensors confirm the expected result,
+ * false otherwise.
  */
 bool cut() {
 	if (!sendIO(CUTTER_PIN, CUTTER_CLOSE)) {
 		return false;
 	}
 	ROS_DEBUG("Close command has been send to the cutter");
-	
+
 	bool success = false;
 	for (int tries = 0; tries <= nrOfAttemps; tries++) {
 		success = readDigInput(CUT_CLOSED_STATE, EXPECT_CUT_CLOSED);
 		if (success) {
 			break; 
 		}
-			ROS_DEBUG("Cutter is not open according to IO and a new attempt would need to be made");
-			//TODO Add new commands due to failed attempt.
+		ROS_DEBUG("Cutter is not open according to IO and a new attempt "
+				"would need to be made");
+		//TODO Add new commands due to failed attempt.
 	}
 	if (!success) {
 		return false;
 	}
-		
+
 	if (!sendIO(CUTTER_PIN, CUTTER_OPEN)) {
 		return false;
 	}
@@ -183,8 +187,9 @@ bool cut() {
 		if (readDigInput(CUT_OPEN_STATE, EXPECT_CUT_OPEN)) {
 			return true; 
 		}
-			ROS_DEBUG("Cutter is not open according to IO and a new attempt would need to be made");
-			//TODO Add new command due to failed attempt.
+		ROS_DEBUG("Cutter is not open according to IO and "
+				"a new attempt would need to be made");
+		//TODO Add new command due to failed attempt.
 	}
 	return false;
 }
@@ -214,8 +219,9 @@ bool startVacuum() {
 		if (readDigInput(PRESSURE_STATE, EXPECT_VAC)) {
 			return true;
 		}
-			ROS_DEBUG("Suction is not correct according to IO and a new attempt would need to be made");
-			//TODO Add new commands due to failed attempt.
+		ROS_DEBUG("Suction is not correct according to IO and a "
+				"new attempt would need to be made");
+		//TODO Add new commands due to failed attempt.
 	}
 	return false;
 }
@@ -228,9 +234,10 @@ bool stopVacuum() {
 	if (!sendIO(VACUUM_PIN, VACUUM_OFF)) {
 		return false;
 	}
-	
+
 	if (!readDigInput(PRESSURE_STATE, EXPECT_NOVAC)) {
-		ROS_WARN("The vacuum should have been 'turned off', but the sensor still measured a vacuum.");
+		ROS_WARN("The vacuum should have been 'turned off', but the sensor "
+				"still measured a vacuum.");
 		return false;
 	}
 	//TODO Could require mutliple attempts, if the sensor does not confirm with the expected value.

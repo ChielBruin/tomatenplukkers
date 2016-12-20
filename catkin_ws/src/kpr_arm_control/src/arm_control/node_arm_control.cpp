@@ -64,6 +64,7 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		ROS_ERROR("Generating a vacuum has failed!");
 		return true;
 	}
+	ROS_DEBUG("Got vacuum.");
 
 	success = cut();
 	if (!success) {
@@ -87,6 +88,7 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 		ROS_ERROR("Stopping the vacuum has failed!");
 		return true;
 	}
+	ROS_DEBUG("Released vacuum.");
 
 	success = releaseGrip();
 	if (!success) {
@@ -119,6 +121,7 @@ void setupMoveIt(NodeHandle n) {
 
 /**
  * Calls the latest state of all IO-ports and the relevant inputs are passed to the vector pinstates.
+ * @param msg The IOStates message.
  */
 void getIOStates(const ur_msgs::IOStates msg) {
 	std::vector<ur_msgs::Digital> digitalPins = msg.digital_in_states;
@@ -142,7 +145,6 @@ int main(int argc, char **argv) {
 
 	ServiceServer cucumberService = n.advertiseService("target/cucumber", getCucumber);
 	io_state_client = n.serviceClient<ur_msgs::SetIO>("set_io");
-	
 	Subscriber sub_io_states = n.subscribe("io_states", 1, getIOStates);
 
 	setupMoveIt(n);
