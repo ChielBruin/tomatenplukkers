@@ -5,6 +5,10 @@
 #include "geometry_msgs/Pose.h"
 #include <math.h>
 
+#define DISTANCE_THRESHOLD .2
+#define WEIGHT_THRESHOLD 30
+#define CURVATURE_THRESHOLD 1
+
 /**
  * Container class that stores a cucumbers data.
  */
@@ -15,6 +19,7 @@ class CucumberContainer {
 	float height;
 	
 	float curvature;
+	int image_x, image_y;
 
  public:
 	/**
@@ -27,15 +32,16 @@ class CucumberContainer {
 		this->width = msg.width;
 		this->height = msg.height;
 		this->curvature = msg.curvature;
+		this->image_x = msg.image_stem_position[0];
+		this->image_y = msg.image_stem_position[1];
 	}
 
 	/**
 	 * Constructor for a 2D instance of the container object.
 	 */
 	CucumberContainer(float x, float y, float width, float height, float curvature) {
-		this->x = x;
-		this->y = y;
-		this->z = 0;
+		this->image_x = x;
+		this->image_y = y;
 		this->width = width;
 		this->height = height;
 		this->curvature = curvature;
@@ -65,6 +71,8 @@ class CucumberContainer {
 		 msg.width = width;
 		 msg.height = height;
 		 msg.curvature = curvature;
+		 std::vector<int> img_pos(image_x, image_y);
+		 msg.image_stem_position = img_pos;
 		return msg;		 
 	}
 
@@ -92,6 +100,31 @@ class CucumberContainer {
 	 */
 	float getCurvature() {
 		return this->curvature;
+	}
+	
+	/**
+	 * Check if the specified other cucumber is equal to this cucumber.
+	 * Equal, in this case, means that it lies within the bounds set by DISTANCE_THRESHOLD, WEIGHT_THRESHOLD and CURVATURE_THRESHOLD.
+	 * The equality test does not use the original image positions as this is influenced by the used camera.
+	 * @param other [CucumberContainer]: the cucumber to check with
+	 * @return True is they are equal, false otherwise
+	 */
+	bool equals(CucumberContainer other) {
+		float dx = this->x - other.x;
+		float dy = this->y - other.y;
+		float dz = this->z - other.z;
+		
+		if (sqrt(dx*dx + dy*dy + dz*dz) > DISTANCE_THRESHOLD) {
+			return false;
+		}
+		if (fabs(this->getWeight() - other.getWeight()) > WEIGHT_THRESHOLD) {
+			return false;
+		}
+		if (fabs(this->getCurvature() - other.getCurvature()) > CURVATURE_THRESHOLD) {
+			return false;
+		}
+		
+		return true;
 	}
 };
 #endif

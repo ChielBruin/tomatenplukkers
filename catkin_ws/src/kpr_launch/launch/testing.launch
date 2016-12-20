@@ -1,9 +1,12 @@
 <?xml version="1.0"?>
-<!-- Launch file that starts the real version of the robot -->
+<!-- Launch file that starts a test version of the robot -->
 <launch>
 	<arg name="enable_gui" default="true"/>
 
-	<arg name="robot_ip"/>
+	<arg name="ursim"/>
+	<arg name="vnc-server" default="false"/>
+
+	<arg name="robot_ip" default="127.0.0.1"/>
 	<arg name="limited" default="true"/>
 
 	<arg name="cpu_mode" default="false"/>
@@ -12,10 +15,17 @@
 	<!-- Launch the interface -->
 	<include if="$(arg enable_gui)" file="$(find kpr_interface)/launch/interface.launch"/>
 
+	<!-- Launch the test nodes -->
+	<include file="$(find kpr_testing)/launch/testing.launch">
+		<arg name="ursim" value="$(arg ursim)"/>
+		<arg name="vnc-server" value="$(arg vnc-server)"/>
+	</include>
+
 	<!-- Launch the hardware -->
 	<include file="$(find kpr_arm_control)/launch/arm.launch">
 		<arg name="robot_ip" value="$(arg robot_ip)"/>
 		<arg name="limited" value="$(arg limited)"/>
+		<arg name="testing" value="true"/>
 	</include>
 
 	<!-- Launch fasterRCNN -->

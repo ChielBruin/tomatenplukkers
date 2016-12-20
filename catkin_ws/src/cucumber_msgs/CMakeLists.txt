@@ -44,8 +44,12 @@ catkin_package(
 ## Build ##
 ###########
 
+## Allow c++11
+set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
+
 include_directories(
 	${catkin_INCLUDE_DIRS}
+	include
 )
 
 #############
@@ -56,3 +60,6 @@ include_directories(
 #############
 ## Testing ##
 #############
+
+catkin_add_gtest(cucumberContainer-test test/test_cucumberContainer.cpp)
+	target_link_libraries(cucumberContainer-test ${catkin_LIBRARIES})
