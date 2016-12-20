@@ -71,7 +71,7 @@ class CucumberContainer {
 		 msg.width = width;
 		 msg.height = height;
 		 msg.curvature = curvature;
-		 std::vector<int> img_pos(image_x, image_y);
+		 std::vector<int> img_pos {image_x, image_y};
 		 msg.image_stem_position = img_pos;
 		return msg;		 
 	}

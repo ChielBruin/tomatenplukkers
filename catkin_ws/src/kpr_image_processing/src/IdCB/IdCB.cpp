@@ -5,6 +5,10 @@
 #include "stereo_msgs/DisparityImage.h"
 #include "cucumber_msgs/Cucumber.h"
 #include "std_msgs/Time.h"
+#include <math.h>
+#include <Eigen/Geometry>
+#include <iostream>
+#include <Eigen/Dense>
 
 #define CAM_LEFT 0
 #define CAM_RIGHT 1
@@ -25,24 +29,34 @@ std::map<ros::Time, stereo_msgs::DisparityImage> disparity;
 CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::DisparityImage disparity) {
 	CucumberContainer tmp = CucumberContainer(in);
 	int x = in.image_stem_position[0];
-	ROS_INFO("%f" , x);
 	int y = in.image_stem_position[1];	
 	float B = disparity.T;
 	float pixel_size = 4.65e-6;
 	float f = disparity.f;
-	int d = disparity.image.data[disparity.image.step*y+48+x*disparity.image.step/disparity.image.width];
-	if(camera == CAM_LEFT) {
-		float Z = f*B/d;
-		float X = x*Z/f;
-		float Y = y*Z/f;
-		float width = in.width*pixel_size;
-		float height = in.height*pixel_size;
-		float curvature = in.curvature;
-		return CucumberContainer(X,Y,Z,width, height, curvature);
-	} else {
-		ROS_WARN("Right camera not supported");
-		return tmp;
+	int im = disparity.image.step*(y+48)+x*disparity.image.step/disparity.image.width;
+	if (im > disparity.image.data.size()){
+		ROS_ERROR("Out of Range");
+		return CucumberContainer(0, 0, 0, 0, -1);
 	}
+	int d = disparity.image.data[im];
+	if(camera != CAM_LEFT) {
+		ROS_WARN("Right camera not supported");
+		return CucumberContainer(0, 0, 0, 0, -1);
+	}
+	float Z_cam = f*B/(float)d;
+	float X_cam = x*Z_cam/f;
+	float Y_cam = y*Z_cam/f;
+	float width = in.width*pixel_size;
+	float height = in.height*pixel_size;
+	float curvature = in.curvature;
+	Eigen::Vector4f v(X_cam,Y_cam,Z_cam,1);
+ 	//TODO translation and rotation degree
+	Eigen::Vector3f translate(6e-2,2e-2,47.4e-3-3.8e-3+14e-2);
+	float rotDeg = 30;
+	float rotRad = rotDeg*M_PI/180.0;
+	Eigen::Transform<float,3,Eigen::Affine> transform = Eigen::Translation3f(translate) * Eigen::AngleAxisf(rotRad,Eigen::Vector3f(1,0,0));
+	v = transform*v;
+	return CucumberContainer(v[0],v[1],v[2],width, height, curvature);
 }
 
 /**
