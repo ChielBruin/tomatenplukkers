@@ -35,7 +35,7 @@ def table():
 
 	backpanelBox = SolidPrimitive()
 	backpanelBox.type = backpanelBox.BOX
-	backpanelBox.dimensions = [1.5,1,0.1]
+	backpanelBox.dimensions = [1.5,0.1,1]
 	#backpanelBox.dimensions[backpanelBox.BOX_X] = 1.5
 	#backpanelBox.dimensions[backpanelBox.BOX_Y] = 0.1
 	#backpanelBox.dimensions[backpanelBox.BOX_Z] = 1
