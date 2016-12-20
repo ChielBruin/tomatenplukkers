@@ -150,22 +150,18 @@ void addEndEffector() {
 	endEffector.object.header.frame_id = "end_effector_attach";
 	endEffector.object.id = "end_effector";
 
-	geometry_msgs::Pose eePose;
 	// Translates the end effector to the end of the arm.
 	// Should not be necessary but currently the built-in translation breaks.
 	//TODO Make sure the built-in translation is used instead of this work around.
-	eePose.position.x = 0.81725;
-	eePose.position.y = 0.19145;
-	eePose.position.z = -0.005491;
+	geometry_msgs::Pose eePose = move_group_ptr->getCurrentPose().pose;
 
 	eePose.position.y += 0.16/2;
-	eePose.orientation.w = 1.0;
 
 	shape_msgs::SolidPrimitive eeBox;
 	eeBox.type = eeBox.BOX;
 	eeBox.dimensions.resize(3);
-	eeBox.dimensions[eeBox.BOX_X] = 0.075;
-	eeBox.dimensions[eeBox.BOX_Y] = 0.16;
+	eeBox.dimensions[eeBox.BOX_X] = 0.16;
+	eeBox.dimensions[eeBox.BOX_Y] = 0.075;
 	eeBox.dimensions[eeBox.BOX_Z] = 0.075;
 
 	endEffector.object.primitives.push_back(eeBox);
