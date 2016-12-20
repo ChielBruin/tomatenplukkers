@@ -16,16 +16,40 @@ success = {
 }
 
 def createStateMachine():
-	sm = smach.StateMachine(outcomes=['OK', 'MOVE_ERR'])
+	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'CUTT_ERR', 'DROP_ERR', 'MOVE_ERR'])
 
-	# Open the container
 	with sm:
-		# Add states to the container
-		smach.StateMachine.add('FOO', state.Foo(), 
-							   transitions={'outcome1':'BAR', 
-											'outcome2':'OK'})
-		smach.StateMachine.add('BAR', state.Bar(), 
-							   transitions={'outcome2':'FOO'})
+		smach.StateMachine.add('CreatePath', state.CreatePath(), 
+							   transitions={'PathFound':'MoveToCucumber', 
+											'NoPath':'MOVE_ERR'})
+											
+		smach.StateMachine.add('MoveToCucumber', state.MoveToCucumber(), 
+							   transitions={'MoveOK':'CloseGripper',
+											'MoveError':'MOVE_ERR'})
+											
+		smach.StateMachine.add('CloseGripper', state.CloseGripper(), 
+							   transitions={'GripperClosed':'VacuumGrip',
+											'GripperError':'GRAB_ERR'})
+											
+		smach.StateMachine.add('VacuumGrip', state.VacuumGrip(), 
+							   transitions={'VacuumCreated':'Cut',
+											'VacuumError':'GRAB_ERR'})
+											
+		smach.StateMachine.add('Cut', state.Cut(), 
+							   transitions={'StemCutted':'MoveToDropoff',
+											'CutterError':'CUTT_ERR'})
+											
+		smach.StateMachine.add('MoveToDropoff', state.MoveToDropoff(), 
+							   transitions={'MoveOK':'OpenGripper',
+											'MoveError':'MOVE_ERR'})
+											
+		smach.StateMachine.add('OpenGripper', state.OpenGripper(), 
+							   transitions={'GripperOpened':'MoveToStart',
+											'GripperError':'GRAB_ERR'})
+											
+		smach.StateMachine.add('MoveToStart', state.MoveToStart(), 
+							   transitions={'MoveOK':'OK',
+											'MoveError':'MOVE_ERR'})
 	return sm
 	
 def getCucumberCallback (req):
@@ -37,9 +61,10 @@ def getCucumberCallback (req):
 def main():
 	rospy.init_node('ArmControl')
 	s = rospy.Service('target/cucumber', HarvestAction, getCucumberCallback)
-
-	sm = createStateMachine()
+	
+	ROS_INFO("Started");
 	rospy.spin()
+	ROS_INFO("Stopped");
 
 if __name__ == '__main__':
     main()
