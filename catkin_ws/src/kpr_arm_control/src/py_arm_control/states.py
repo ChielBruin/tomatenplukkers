@@ -6,21 +6,21 @@ import smach_ros
 from geometry_msgs.msg import Quaternion, Pose
 
 # Output pins
-VACUUM_OUT = 0x1
-CUTTER_OUT = 0x2
-GRIPPER_OUT = 0x3
+VACUUM_OUT = 1
+CUTTER_OUT = 2
+GRIPPER_OUT = 3
 
 # Input pins
-VACUUM_IN = 0x1
-CUTTER_IN = 0x2
-GRIPPER_IN = 0x3
+VACUUM_IN = 1
+CUTTER_IN = 2
+GRIPPER_IN = 3
 
-GRIPPER_CLOSE = 0x0
-GRIPPER_OPEN = 0x1
-CUTTER_CLOSE = 0x1
-CUTTER_OPEN = 0x0
-VACUUM_ON = 0X1
-VACUUM_OFF = 0X0
+GRIPPER_CLOSE = False
+GRIPPER_OPEN = True
+CUTTER_CLOSE = True
+CUTTER_OPEN = False
+VACUUM_ON = True
+VACUUM_OFF = False
 
 class MoveToCucumber(smach.State):
 	def __init__(self, moveArmTo):
@@ -69,8 +69,7 @@ class Cut(smach.State):
 		if self.setIO(CUTTER_OUT, CUTTER_CLOSE, CUTTER_IN, CUTTER_CLOSE):
 			if self.setIO(CUTTER_OUT, CUTTER_OPEN, CUTTER_IN, CUTTER_OPEN):
 				return 'StemCutted'
-		else:
-			return 'CutterError'
+		return 'CutterError'
 
 class MoveToDropoff(smach.State):
 	def __init__(self, moveArmTo):

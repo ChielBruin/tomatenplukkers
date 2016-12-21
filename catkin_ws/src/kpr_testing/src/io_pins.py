@@ -19,8 +19,11 @@ response = True
 #dictionary of pins
 pinStates = {	
 	"DI1":["-   ","-","VacSens"], 
-	"DO2":["-   ","-","Gripper"],
-	"DO4":["-   ","-","Cutter"],
+	"DI2":["-   ","-","CutSens"], 
+	"DI3":["-   ","-","GripSens"], 
+	"DO1":["-   ","-","Vacuum"],
+	"DO2":["-   ","-","Cutter"],
+	"DO3":["-   ","-","Gripper"],
 }
 
 def display():
@@ -108,14 +111,16 @@ def get_message():
 	Analog In
 	Analog Out
 	'''
+	global pinStates
+	
 	msg = IOStates()
 	for pin in pinStates:
 		if pinStates[pin][1] == "Digital Out":
-			msg.digital_out_states.append(Digital(int(pin[2]), bool(pinStates[pin][0])))
+			msg.digital_out_states.append(Digital(int(pin[2]), bool(int(float(pinStates[pin][0])))))
 		elif pinStates[pin][1] == "Analog Out":
 			msg.analog_out_states.append(Analog(int(pin[2]), float(pinStates[pin][0])))
 		elif pinStates[pin][1] == "Digital In":
-			msg.digital_in_states.append(Digital(int(pin[2]), bool(pinStates[pin][0])))
+			msg.digital_in_states.append(Digital(int(pin[2]), bool(int(float(pinStates[pin][0])))))
 		elif pinStates[pin][1] == "Analog In":
 			msg.analog_in_states.append(Analog(int(pin[2]), float(pinStates[pin][0])))
 	return msg
@@ -207,7 +212,8 @@ def main():
 	rospy.loginfo("Started")
 	s = rospy.Service('set_io_testing', SetIO, request)
 	display()
-	io_state_pub = rospy.Publisher("io_states", IOStates, queue_size=10)
+	#io_state_pub = rospy.Publisher("io_states", IOStates, queue_size=10)
+	io_state_pub = rospy.Publisher("io_states_testing", IOStates, queue_size=10)
 
 
 	with raw_mode(sys.stdin):

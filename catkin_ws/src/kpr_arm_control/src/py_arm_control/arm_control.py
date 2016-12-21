@@ -25,8 +25,8 @@ success = {
 startingPosition = Pose()
 ATTEMPTS = 10
 
-analogPinStates = [0] * 10
-digitalPinStates = [0] * 10
+analogPinStates = [False] * 10
+digitalPinStates = [False] * 10
 
 def createStateMachine():
 	global startingPosition
@@ -89,31 +89,26 @@ def addSceneObjects(aco_publisher):
 	
 def setupMoveIt():
 	moveit_commander.roscpp_initialize(sys.argv)
-	group = None;
-	while group is None:
-		try:
-			group = moveit_commander.MoveGroupCommander("manipulator")
-		except RuntimeError:
-			rospy.logwarn("Could not contact the move group.")
+	group = moveit_commander.MoveGroupCommander("manipulator")
 	robot = moveit_commander.RobotCommander()
 	scene = moveit_commander.PlanningSceneInterface()
 	return (robot, scene, group)
 
 def IOStatesCallback(msg):
 	global analogPinStates, digitalPinStates
-	
-	for pin in msg.digital_out_states:
+	for pin in msg.digital_in_states:
 		digitalPinStates[pin.pin] = pin.state
 		
-	for pin in msg.analog_out_states:
+	for pin in msg.analog_in_states:
 		analogPinStates[pin.pin] = pin.state
 	
 def setIO(pin, value):
 	try:
-		set_io = rospy.ServiceProxy('set_io', SetIO)
+		#set_io = rospy.ServiceProxy('set_io', SetIO)
+		set_io = rospy.ServiceProxy('set_io_testing', SetIO)
 		return set_io(SetIORequest.FUN_SET_DIGITAL_OUT, pin, value)
 	except rospy.ServiceException, e:
-		print "Service call failed: %s"%e
+		rospy.logwarn("Service call failed: %s", e)
 		return False
 
 def getAnalog(pin):
@@ -125,8 +120,11 @@ def getDigital(pin):
 	return digitalPinStates[pin]
 	
 def setupIO():
-	rospy.wait_for_service('set_io')
-	io_states_sub = rospy.Subscriber("io_states", IOStates, IOStatesCallback);
+	#rospy.wait_for_service('set_io')
+	rospy.wait_for_service('set_io_testing')
+	#io_states_sub = rospy.Subscriber("io_states", IOStates, IOStatesCallback);
+	io_states_sub = rospy.Subscriber("io_states_testing", IOStates, IOStatesCallback);
+	return io_states_sub
 
 def writeWithDigitalFeedback(outPin, value, inPin, expected):
 	if not setIO(outPin, value):
@@ -153,7 +151,7 @@ if __name__ == '__main__':
 	s = rospy.Service('target/cucumber', HarvestAction, getCucumberCallback)
 	aco_pub = rospy.Publisher('attached_collision_object', AttachedCollisionObject, queue_size=10)
 	(robot, scene, group) = setupMoveIt()
-	setupIO()
+	io_states_sub = setupIO()
 	startingPosition = group.get_current_pose()
 	rospy.loginfo("Started")
 	addSceneObjects(aco_pub)
