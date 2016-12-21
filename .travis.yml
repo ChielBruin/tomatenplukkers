@@ -64,7 +64,7 @@ env:
 
 # Install system dependencies, namely a very barebones ROS setup.
 before_install:
-  - sudo sh -c "echo \"deb http://ftp.tudelft.nl/ros/ubuntu $ROS_DISTRO main\" > /etc/apt/sources.list.d/ros-latest.list"
+  - sudo sh -c "echo \"deb http://ftp.tudelft.nl/ros/ubuntu $ROS_CI_DESKTOP main\" > /etc/apt/sources.list.d/ros-latest.list"
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
   - sudo apt-get update -qq
   - sudo apt-get install -y python-catkin-pkg python-rosdep python-wstool ros-$ROS_DISTRO-catkin
