@@ -23,6 +23,7 @@ success = {
 	"MOVE_ERR": HarvestActionResponse.MOVE_ERR
 }
 startingPosition = Pose()
+ATTEMPTS = 10
 
 def createStateMachine():
 	global startingPosition
@@ -35,15 +36,15 @@ def createStateMachine():
 											'MoveError':'MOVE_ERR'},
 							   remapping={	'data':'request'})
 											
-		smach.StateMachine.add('CloseGripper', state.CloseGripper(), 
+		smach.StateMachine.add('CloseGripper', state.CloseGripper(writeWithDigitalFeedback), 
 							   transitions={'GripperClosed':'VacuumGrip',
 											'GripperError':'GRAB_ERR'})
 											
-		smach.StateMachine.add('VacuumGrip', state.VacuumGrip(), 
+		smach.StateMachine.add('VacuumGrip', state.VacuumGrip(writeWithDigitalFeedback), 
 							   transitions={'VacuumCreated':'Cut',
 											'VacuumError':'GRAB_ERR'})
 											
-		smach.StateMachine.add('Cut', state.Cut(), 
+		smach.StateMachine.add('Cut', state.Cut(writeWithDigitalFeedback), 
 							   transitions={'StemCutted':'MoveToDropoff',
 											'CutterError':'CUTT_ERR'})
 											
@@ -52,7 +53,7 @@ def createStateMachine():
 											'MoveError':'MOVE_ERR'},
 							   remapping={	'data':'request'})
 											
-		smach.StateMachine.add('OpenGripper', state.OpenGripper(), 
+		smach.StateMachine.add('OpenGripper', state.OpenGripper(writeWithDigitalFeedback), 
 							   transitions={'GripperOpened':'MoveToStart',
 											'GripperError':'GRAB_ERR'})
 											
@@ -119,6 +120,26 @@ def getDigital(pin):
 def setupIO():
 	rospy.wait_for_service('set_io')
 	io_states_sub = rospy.Subscriber("io_states", IOStates, IOStatesCallback);
+
+def writeWithDigitalFeedback(outPin, value, inPin, expected)
+	if not setIO(outPin, value):
+		return False
+	
+	for i in range(ATTEMPTS):
+		if getDigital(inPin) is expected:
+			return True
+		rospy.sleep(.1)
+	return False
+
+def writeWithAnalogFeedback(outPin, value, inPin, expected, delta)
+	if not setIO(outPin, value):
+		return False
+	
+	for i in range(ATTEMPTS):
+		if abs(getAnalog(inPin) - expected) < delta:
+			return True
+		rospy.sleep(.1)
+	return False
 	
 if __name__ == '__main__':
 	rospy.init_node('ArmControl')
