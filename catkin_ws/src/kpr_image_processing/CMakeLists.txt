@@ -3,6 +3,7 @@ project(kpr_image_processing)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
+	roslaunch
 	roscpp
 	std_msgs
 	sensor_msgs
@@ -65,6 +66,8 @@ add_dependencies(IdCB
 #############
 ## Testing ##
 #############
+
+roslaunch_add_file_check(launch)
 
 ## Add gtest based cpp test target and link libraries
 catkin_add_gtest(IdCB-test test/TEST_IdCB.cpp)

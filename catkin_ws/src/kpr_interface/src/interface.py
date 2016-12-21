@@ -6,11 +6,12 @@ import datetime
 import os
 
 from Tkinter import *
+import tkFileDialog as tkfd
 from PIL import ImageTk
 import PIL.Image
 from cv_bridge import CvBridge, CvBridgeError
 
-from kpr_interface.srv import GetSettings
+from kpr_interface.srv import GetSettings, SettingsIO
 from kpr_interface.msg import SetSetting
 from diagnostic_msgs.msg import KeyValue
 from sensor_msgs.msg import Image
@@ -69,6 +70,34 @@ def saveSettings(entries):
 	except:
 		rospy.logerr("Settings manager is offline, settings are not saved")		
 	
+def storeSettings():
+	'''
+	Asks the user for a file location and stores all the settings there.
+	'''
+	try:
+		path = tkfd.asksaveasfilename(defaultextension=".json")
+		if not path:
+			return
+		rospy.wait_for_service('settings/save', timeout = 5)
+		rospy.ServiceProxy('settings/save', SettingsIO)(path)
+	except Exception as e:
+		rospy.logerr("Error while storing settings")
+		rospy.logerr("-> %s", e)
+		
+def loadSettings():
+	'''
+	Asks the user for a file location and load all the settings stored there.
+	'''
+	try:
+		path = tkfd.askopenfilename(defaultextension=".json")
+		if not path:
+			return
+		rospy.wait_for_service('settings/load', timeout = 5)
+		rospy.ServiceProxy('settings/load', SettingsIO)(path)
+	except Exception as e:
+		rospy.logerr("Error while loading settings")
+		rospy.logerr("-> %s", e)
+	
 # Displays a list of all settings on the screen
 # root: The node to display all settings on
 # settings: A dictionary with all settings to display
@@ -111,8 +140,15 @@ def buildScreen(root):
 	hsbar.config(command=lbox.xview)
 	
 	# Create settings frame
-	settings = Frame(root)
-	settings.grid(column=2, row = 0)	
+	settingsFrame = Frame(root)
+	settingsFrame.grid(column=2, row = 0)	
+	settings = Frame(settingsFrame)
+	settings.pack()
+	Label(settingsFrame, text="Store and load settings to/from file").pack()
+	loadSave = Frame(settingsFrame)
+	loadSave.pack()
+	Button(loadSave, text = 'Store', command = lambda: storeSettings()).grid(column=0, row = 0)
+	Button(loadSave, text = 'Load', command = lambda: loadSettings()).grid(column=1, row = 0)
 	Label(settings, text="Settings:").pack()
 	Frame(settings).pack() # settings container
 	
@@ -154,9 +190,8 @@ def targetCallback(msg):
 # target: The target object
 # returns: The 2D pixel location of the target
 def calculateTarget(target):
-	# TODO: Calculate the actual position
-	x = target.stem_position.x
-	y = target.stem_position.y
+	x = target.image_stem_position[0]
+	y = target.image_stem_position[1]
 	return (x-5, y-5, x+5, y+5)
 
 # Displays the target position.
