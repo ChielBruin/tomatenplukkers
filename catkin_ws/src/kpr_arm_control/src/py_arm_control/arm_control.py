@@ -89,8 +89,6 @@ def setupMoveIt():
 			group = moveit_commander.MoveGroupCommander("manipulator")
 		except RuntimeError:
 			rospy.logwarn("Could not contact the move group.")
-			import pprint
-			pprint.pprint(group)
 	robot = moveit_commander.RobotCommander()
 	scene = moveit_commander.PlanningSceneInterface()
 	return (robot, scene, group)
