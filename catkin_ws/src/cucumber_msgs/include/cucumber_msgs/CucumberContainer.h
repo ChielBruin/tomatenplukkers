@@ -126,5 +126,15 @@ class CucumberContainer {
 		
 		return true;
 	}
+	
+	/**
+	 * Set the image position of this cucumber.
+	 * @param x The x coordinate in the image
+	 * @param y The y coordinate in the image
+	 */
+	void setImagePosition(int x, int y) {
+		this->image_x = x;
+		this->image_y = y;
+	}
 };
 #endif

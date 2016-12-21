@@ -6,17 +6,17 @@
 #include <gtest/gtest.h>
 
 /**
- * Run all the test cases.
- */
-int main (int argc, char** argv) {
-	testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
-}
-
-/**
- * Tests for to3D() function.
-to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::DisparityImage disparity)
-CucumberContainer c = CucumberContainer(x,y,width(cucumber),height,curve);
+ * Creates a disparity image for testing
+ *
+ * @param f The focal length in pixels
+ * @param T The baseline in metres
+ * @param step Amount of data at 1 row
+ * @param width Amount of pixels at 1 row
+ * @param vecLength Total datapoints
+ * @param dataPoint Point in vector where a value can be found (must be the place where depth of cucmber postion will be measures)
+ * param dataPointValue The value the dataPoint has
+ *
+ * @return Disparity image
  */
 stereo_msgs::DisparityImage CreateDisparity(int f, float T, int step, int width, int vecLength, int dataPoint, float dataPointValue){
 	stereo_msgs::DisparityImage d = stereo_msgs::DisparityImage();
@@ -31,6 +31,20 @@ stereo_msgs::DisparityImage CreateDisparity(int f, float T, int step, int width,
 	d.image = i;
 	return d;
 }
+
+/**
+ * Run all the test cases.
+ */
+int main (int argc, char** argv) {
+	testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
+}
+
+/**
+ * Tests for to3D() function.
+ * to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::DisparityImage disparity)
+ * CucumberContainer c = CucumberContainer(x,y,width(cucumber),height,curve);
+ */
 TEST(to3D, GoodCucumber){
 	CucumberContainer c = CucumberContainer(1,2,1,10,0);
 	cucumber_msgs::Cucumber msg = c.toMessage();

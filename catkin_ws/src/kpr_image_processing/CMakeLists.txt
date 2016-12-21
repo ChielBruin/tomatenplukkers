@@ -68,9 +68,7 @@ add_dependencies(IdCB
 
 ## Add gtest based cpp test target and link libraries
 catkin_add_gtest(IdCB-test test/TEST_IdCB.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-	target_link_libraries(IdCB-test ${catkin_LIBRARIES})
-# endif()
+target_link_libraries(IdCB-test ${catkin_LIBRARIES})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

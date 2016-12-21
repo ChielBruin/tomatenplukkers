@@ -17,17 +17,19 @@ std::map<ros::Time, stereo_msgs::DisparityImage> disparity;
 
 /**
  * Calculate the 3D properties of the cucumber from the given camera position and disparity image.
- * Z = distance along the camera Z axis (in metres)
- * f = focal length (in pixels)
- * B = baseline (in metres)
- * d = disparity (in pixels)
- * Z = fB/d
- * X = xZ/f (x is pixel-x-position)
- * Y = yZ/f (y is pixel-y-position)
- * Return: 3D postion cucumber(m) + width (m), height (m) and curvature
+ *
+ * @param in Cucumber information obtaind from camera picture
+ * @param camera The Left/Right camera used for the image using
+ * @param disparity Information of the camera and the image made
+ *
+ * @return 3D postion cucumber(m), width (m), height (m) and curvature
  */
 CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::DisparityImage disparity) {
 	CucumberContainer tmp = CucumberContainer(in);
+	if(camera != CAM_LEFT) {
+		ROS_WARN("Right camera not supported");
+		return CucumberContainer(0, 0, 0, 0, -1);
+	}
 	int x = in.image_stem_position[0];
 	int y = in.image_stem_position[1];	
 	float B = disparity.T;
@@ -39,10 +41,6 @@ CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::Disp
 		return CucumberContainer(0, 0, 0, 0, -1);
 	}
 	int d = disparity.image.data[im];
-	if(camera != CAM_LEFT) {
-		ROS_WARN("Right camera not supported");
-		return CucumberContainer(0, 0, 0, 0, -1);
-	}
 	float Z_cam = f*B/(float)d;
 	float X_cam = x*Z_cam/f;
 	float Y_cam = y*Z_cam/f;
@@ -56,7 +54,9 @@ CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::Disp
 	float rotRad = rotDeg*M_PI/180.0;
 	Eigen::Transform<float,3,Eigen::Affine> transform = Eigen::Translation3f(translate) * Eigen::AngleAxisf(rotRad,Eigen::Vector3f(1,0,0));
 	v = transform*v;
-	return CucumberContainer(v[0],v[1],v[2],width, height, curvature);
+	CucumberContainer res = CucumberContainer(v[0],v[1],v[2],width, height, curvature);
+	res.setImagePosition(x,y);
+	return res;
 }
 
 /**
