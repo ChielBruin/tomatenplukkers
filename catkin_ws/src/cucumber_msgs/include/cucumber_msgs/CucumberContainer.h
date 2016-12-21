@@ -71,7 +71,7 @@ class CucumberContainer {
 		 msg.width = width;
 		 msg.height = height;
 		 msg.curvature = curvature;
-		 std::vector<int> img_pos(image_x, image_y);
+		 std::vector<int> img_pos {image_x, image_y};
 		 msg.image_stem_position = img_pos;
 		return msg;		 
 	}
@@ -125,6 +125,16 @@ class CucumberContainer {
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * Set the image position of this cucumber.
+	 * @param x The x coordinate in the image
+	 * @param y The y coordinate in the image
+	 */
+	void setImagePosition(int x, int y) {
+		this->image_x = x;
+		this->image_y = y;
 	}
 };
 #endif
