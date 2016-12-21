@@ -10,7 +10,7 @@ from cucumber_msgs.srv import HarvestAction, HarvestActionResponse
 from geometry_msgs.msg import Pose
 from moveit_msgs.msg import AttachedCollisionObject
 from ur_msgs.msg import IOStates
-from ur_msgs.srv import SetIO
+from ur_msgs.srv import SetIO, SetIORequest
 
 import states as state
 import sceneObjects as sceneObj
@@ -24,6 +24,9 @@ success = {
 }
 startingPosition = Pose()
 ATTEMPTS = 10
+
+analogPinStates = [0] * 10
+digitalPinStates = [0] * 10
 
 def createStateMachine():
 	global startingPosition
@@ -121,7 +124,7 @@ def setupIO():
 	rospy.wait_for_service('set_io')
 	io_states_sub = rospy.Subscriber("io_states", IOStates, IOStatesCallback);
 
-def writeWithDigitalFeedback(outPin, value, inPin, expected)
+def writeWithDigitalFeedback(outPin, value, inPin, expected):
 	if not setIO(outPin, value):
 		return False
 	
@@ -131,7 +134,7 @@ def writeWithDigitalFeedback(outPin, value, inPin, expected)
 		rospy.sleep(.1)
 	return False
 
-def writeWithAnalogFeedback(outPin, value, inPin, expected, delta)
+def writeWithAnalogFeedback(outPin, value, inPin, expected, delta):
 	if not setIO(outPin, value):
 		return False
 	

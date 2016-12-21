@@ -37,7 +37,7 @@ class MoveToCucumber(smach.State):
 
 class CloseGripper(smach.State):
 	def __init__(self, setIO):
-		self.setIo = setIO
+		self.setIO = setIO
 		smach.State.__init__(self, outcomes=['GripperClosed', 'GripperError'])
 
 	def execute(self, userdata):
@@ -49,7 +49,7 @@ class CloseGripper(smach.State):
 
 class VacuumGrip(smach.State):
 	def __init__(self, setIO):
-		self.setIo = setIO
+		self.setIO = setIO
 		smach.State.__init__(self, outcomes=['VacuumCreated', 'VacuumError'])
 
 	def execute(self, userdata):
@@ -61,7 +61,7 @@ class VacuumGrip(smach.State):
 
 class Cut(smach.State):
 	def __init__(self, setIO):
-		self.setIo = setIO
+		self.setIO = setIO
 		smach.State.__init__(self, outcomes=['StemCutted', 'CutterError'])
 		
 	def execute(self, userdata):
@@ -86,7 +86,7 @@ class MoveToDropoff(smach.State):
 
 class OpenGripper(smach.State):
 	def __init__(self, setIO):
-		self.setIo = setIO
+		self.setIO = setIO
 		smach.State.__init__(self, outcomes=['GripperOpened', 'GripperError'])
 
 	def execute(self, userdata):
