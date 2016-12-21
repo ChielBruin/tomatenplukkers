@@ -88,11 +88,15 @@ def addSceneObjects(aco_publisher):
 	aco_publisher.publish(sceneObj.endEffector(group))
 	
 def setupMoveIt():
-	#rospy.sleep(5)
 	moveit_commander.roscpp_initialize(sys.argv)
+	group = None;
+	while group is None:
+		try:
+			group = moveit_commander.MoveGroupCommander("manipulator")
+		except RuntimeError:
+			rospy.logwarn("Could not contact the move group.")
 	robot = moveit_commander.RobotCommander()
 	scene = moveit_commander.PlanningSceneInterface()
-	group = moveit_commander.MoveGroupCommander("manipulator")
 	return (robot, scene, group)
 
 def IOStatesCallback(msg):
