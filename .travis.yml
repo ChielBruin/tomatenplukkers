@@ -72,6 +72,9 @@ before_install:
   # Prepare rosdep to install dependencies.
   - sudo rosdep init
   - rosdep update
+  - sudo apt-get install ros-indigo-moveit-plugins
+  - sudo apt-get install ros-indigo-moveit-core
+  - sudo apt-get install ros-indigo-moveit-ros-planning
 
 # Create a catkin workspace with the package under integration.
 install:
