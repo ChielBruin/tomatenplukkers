@@ -7,6 +7,11 @@ from moveit_msgs.msg import AttachedCollisionObject
 from shape_msgs.msg import SolidPrimitive
 
 def table():
+'''
+Create the table and back plate that is connected to the robot base.
+
+@return An AttachedCollisionObject representing the table and back plate
+'''
 	HEIGHT_OFFSET = 0.004
 
 	table = AttachedCollisionObject()
@@ -41,6 +46,11 @@ def table():
 	return table
 
 def endEffector(group):
+'''
+Create the end effector that is connected to the robots arm.
+
+@return An AttachedCollisionObject representing the end effector
+'''
 	endEffector = AttachedCollisionObject()
 	endEffector.link_name = group.get_end_effector_link()
 	endEffector.object.header.frame_id = "end_effector_attach"
