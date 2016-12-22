@@ -18,7 +18,7 @@
 	<include file="$(find kpr_arm_control)/launch/arm.launch">
 		<arg name="robot_ip" value="$(arg robot_ip)"/>
 		<arg name="limited" value="$(arg limited)"/>
-		<arg name="enable_rviz" value="$(arg enable_rviz"/>
+		<arg name="enable_rviz" value="$(arg enable_rviz)"/>
 	</include>
 
 	<!-- Launch fasterRCNN -->
