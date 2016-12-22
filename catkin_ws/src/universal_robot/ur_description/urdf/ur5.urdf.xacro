@@ -99,6 +99,21 @@
       </xacro:cylinder_inertial>
     </link>
 
+	<link name="bumblebee" >
+		<visual>
+			<geometry>
+				<box size="0.1 0.02 0.02"/>
+			</geometry>
+			<origin rpy="0 0 0" xyz="0 0 0"/>
+		</visual>
+	</link>
+	
+	  <joint name="bumblebee_joint" type="fixed">
+		<parent link="base_link"/>
+		<child link="bumblebee"/>
+		<origin rpy="${-pi / 2} 0.0 0.0" xyz="0.0 0.1 0.01"/>
+	  </joint>
+
     <joint name="${prefix}shoulder_pan_joint" type="revolute">
       <parent link="${prefix}base_link" />
       <child link = "${prefix}shoulder_link" />
