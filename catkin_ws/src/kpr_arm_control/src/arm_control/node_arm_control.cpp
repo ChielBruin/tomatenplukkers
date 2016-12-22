@@ -1,24 +1,32 @@
 #include "ros/ros.h"
 #include "arm_control.cpp"
+#include "planning_scene_objects.cpp"
 #include <memory>
 
 #include "cucumber_msgs/HarvestAction.h"
 #include "cucumber_msgs/Cucumber.h"
 #include "cucumber_msgs/CucumberContainer.h"
-#include "geometry_msgs/Pose.h"
-#include "geometry_msgs/Quaternion.h"
 
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Quaternion.h>
 #include <ur_msgs/SetIO.h>
+#include <shape_msgs/SolidPrimitive.h>
+#include <sensor_msgs/PointCloud2.h>
 #include <ur_msgs/IOStates.h>
 #include <ur_msgs/Digital.h>
 
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 using namespace ros;
 
 const std::string NODE_NAME = "Arm Control";
 const std::string move_group_name("manipulator");
+
+Publisher co_publisher;
+Publisher aco_publisher;
 
 /**
  * Attempts to pick a cucumber. This function does the following things:
@@ -103,6 +111,14 @@ bool getCucumber(cucumber_msgs::HarvestAction::Request &msg,
 }
 
 /**
+ * Adds the objects in the scene. (table and end effector).
+ */
+void addSceneObjects() {
+	aco_publisher.publish(createTable());
+	aco_publisher.publish(createEndEffector());
+}
+
+/**
  * Sets up the moveIt environment.
  * 
  * @param n The node handle used to communicate with the master.
@@ -117,6 +133,10 @@ void setupMoveIt(NodeHandle n) {
 
 	ROS_INFO("Reference frame: %s", move_group_ptr->getPlanningFrame().c_str());
 	ROS_INFO("Reference frame: %s", move_group_ptr->getEndEffectorLink().c_str());
+
+	co_publisher = n.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
+	aco_publisher = n.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
+	addSceneObjects();
 }
 
 /**

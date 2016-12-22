@@ -7,12 +7,10 @@
 	<maintainer email="max_groenenboom@hotmail.com">Max Groenenboom</maintainer>
 	<author email="max_groenenboom@hotmail.com">Max Groenenboom</author>
 
-
 	<!-- One license tag required, multiple allowed, one license per tag -->
 	<!-- Commonly used license strings: -->
 	<!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
 	<license>TODO</license>
-
 
 	<url type="repository">https://github.com/ChielBruin/tomatenplukkers</url>
 
@@ -31,6 +29,8 @@
 
 	<build_depend>cucumber_msgs</build_depend>
 
+	<build_depend>shape_msgs</build_depend>
+
 	<run_depend>geometry_msgs</run_depend>
 	<run_depend>std_msgs</run_depend>
 	<run_depend>roscpp</run_depend>
@@ -43,5 +43,9 @@
 	<run_depend>moveit_core</run_depend>
 	<run_depend>moveit_msgs</run_depend>
 
+	<run_depend>rviz</run_depend>
+
 	<run_depend>cucumber_msgs</run_depend>
+
+	<run_depend>shape_msgs</run_depend>
 </package>
