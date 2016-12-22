@@ -16,13 +16,13 @@ import states as state
 import sceneObjects as sceneObj
 
 success = {
+	"ERROR": -1,
 	"OK": HarvestActionResponse.OK,
 	"GRAB_ERR": HarvestActionResponse.GRAB_ERR,
+	"VACC_ERR": HarvestActionResponse.GRAB_ERR,
 	"CUTT_ERR": HarvestActionResponse.CUTT_ERR,
-	"DROP_ERR": HarvestActionResponse.DROP_ERR,
 	"MOVE_ERR": HarvestActionResponse.MOVE_ERR
 }
-startingPosition = Pose()
 ATTEMPTS = 10
 
 analogPinStates = [False] * 10
@@ -34,9 +34,10 @@ Create a fresh state machine.
 
 @return a state machine object
 '''
-	global startingPosition
-	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'CUTT_ERR', 'DROP_ERR', 'MOVE_ERR'])
+	global group
+	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACC_ERROR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'])
 	sm.userdata.startingPosition = startingPosition
+	sm.userdata.status = 'OK'
 
 	with sm:											
 		smach.StateMachine.add('MoveToCucumber', state.MoveToCucumber(moveArmTo), 
@@ -46,29 +47,42 @@ Create a fresh state machine.
 											
 		smach.StateMachine.add('CloseGripper', state.CloseGripper(writeWithDigitalFeedback), 
 							   transitions={'GripperClosed':'VacuumGrip',
-											'GripperError':'GRAB_ERR'})
+											'GripperFail':'RepositionGripper',
+											'GripperError':'Release'},
+							   remapping={	'gripperStatus':'status'})
+											
+		smach.StateMachine.add('RepositionGripper', state.RepositionGripper(moveArmTo, group), 
+							   transitions={'Repositioned':'MoveToCucumber',
+											'RepositionFail':'CloseGripper'})
 											
 		smach.StateMachine.add('VacuumGrip', state.VacuumGrip(writeWithDigitalFeedback), 
 							   transitions={'VacuumCreated':'Cut',
-											'VacuumError':'GRAB_ERR'})
+											'VacuumFail':'Tilt',
+											'VacuumError':'Release'},
+							   remapping={	'vacuumStatus':'status'})
+											
+		smach.StateMachine.add('Tilt', state.Tilt(moveArmTo, group), 
+							   transitions={'TiltOK':'VacuumGrip',
+											'TiltError':'VacuumGrip'})
 											
 		smach.StateMachine.add('Cut', state.Cut(writeWithDigitalFeedback), 
 							   transitions={'StemCutted':'MoveToDropoff',
-											'CutterError':'CUTT_ERR'})
+											'CutterOpenError':'ERROR'},
+											'CutterCloseError':'Release'},
+							   remapping={	'cutterStatus':'status'})
 											
 		smach.StateMachine.add('MoveToDropoff', state.MoveToDropoff(moveArmTo), 
-							   transitions={'MoveOK':'OpenGripper',
+							   transitions={'MoveOK':'Release',
 											'MoveError':'MOVE_ERR'},
 							   remapping={	'data':'request'})
 											
-		smach.StateMachine.add('OpenGripper', state.OpenGripper(writeWithDigitalFeedback), 
-							   transitions={'GripperOpened':'MoveToStart',
-											'GripperError':'GRAB_ERR'})
-											
-		smach.StateMachine.add('MoveToStart', state.MoveToStart(moveArmTo), 
-							   transitions={'MoveOK':'OK',
-											'MoveError':'MOVE_ERR'},
-							   remapping={	'start':'startingPosition'})
+		smach.StateMachine.add('Release', state.Release(writeWithDigitalFeedback), 
+							   transitions={'ReleasedAll':'OK',
+											'GripperError':'GRAB_ERR'},
+											'VacuumError':'VACC_ERR'},
+											'CutterError':'CUTT_ERR'},
+											'ReleaseError':'ERROR'},
+							   remapping={	'systemStatus':'status'})
 	return sm
 
 def moveArmTo(pose_target):
@@ -232,7 +246,6 @@ Starts moveIt! and registers subscribers/publishers.
 	aco_pub = rospy.Publisher('attached_collision_object', AttachedCollisionObject, queue_size=10)
 	(robot, scene, group) = setupMoveIt()
 	io_states_sub = setupIO()
-	startingPosition = group.get_current_pose()
 	rospy.loginfo("Started")
 	addSceneObjects(aco_pub)
 	rospy.spin()
