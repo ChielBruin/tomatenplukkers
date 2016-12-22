@@ -16,10 +16,11 @@ import states as state
 import sceneObjects as sceneObj
 
 success = {
+	# TODO: add more errors to the messages
 	"ERROR": -1,
 	"OK": HarvestActionResponse.OK,
 	"GRAB_ERR": HarvestActionResponse.GRAB_ERR,
-	"VACC_ERR": HarvestActionResponse.GRAB_ERR,
+	"VACC_ERR": HarvestActionResponse.GRAB_ERR, # TODO: fix this one also
 	"CUTT_ERR": HarvestActionResponse.CUTT_ERR,
 	"MOVE_ERR": HarvestActionResponse.MOVE_ERR
 }
