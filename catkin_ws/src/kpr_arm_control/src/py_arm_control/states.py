@@ -65,7 +65,7 @@ class CloseGripper(smach.State):
 			return 'GripperClosed'
 		else:
 			if self.tries < self.maxTries:
-				self.tries++
+				self.tries += 1
 				return 'GripperFail'
 			userdata.gripperStatus = 'GRAB_ERR'
 			return 'GripperError'
@@ -91,6 +91,8 @@ class VacuumGrip(smach.State):
 	def __init__(self, setIO):
 		self.setIO = setIO
 		smach.State.__init__(self, outcomes=['VacuumCreated', 'VacuumFail', 'VacuumError'], output_keys=['vacuumStatus'])
+		self.tries = 0
+		self.maxTries = 3
 
 	def execute(self, userdata):
 		'''
@@ -103,7 +105,7 @@ class VacuumGrip(smach.State):
 			return 'VacuumCreated'
 		else:
 			if self.tries < self.maxTries:
-				self.tries++
+				self.tries += 1
 				return 'VacuumFail'
 			userdata.vacuumStatus = 'VACC_ERR'
 			return 'VacuumError'
@@ -116,8 +118,8 @@ class Tilt(smach.State):
 
 	def execute(self, userdata):
 		rospy.loginfo('Executing state Tilt')
-		pose = group.get_current_pose().pose	# TODO: Calculate the new position
-		if moveArmTo(pose):
+		pose = self.group.get_current_pose().pose	# TODO: Calculate the new position
+		if self.moveArmTo(pose):
 			return 'TiltOK'
 		else:
 			return 'TiltError'
@@ -169,17 +171,27 @@ class Release(smach.State):
 	def __init__(self, setIO):
 		self.setIO = setIO
 		smach.State.__init__(self, outcomes=['ReleasedAll', 'GripperError', 'VacuumError', 'CutterError', 'ReleaseError'], input_keys=['systemStatus'])
-		self.result = {
-					'OK': 'ReleasedAll',
-					'GRAB_ERR': 'GripperError', 
-					'VACC_ERR': 'VacuumError', 
-					'CUTT_ERR': 'CutterError'}
 
 	def execute(self, userdata):
 		rospy.loginfo('Executing state Release')
 		# TODO: Swap these according to the dropping procedure, 
 		# this order seems fine for horizontal dropping in a crate.
-		if self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN):
-			if self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF):
-				return self.result[userdata.systemStatus]
-		return 'ReleaseError'
+		if (userdata.systemStatus is 'OK' and
+			self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN) and
+			self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF)):
+			return 'ReleasedAll'
+			
+		elif (userdata.systemStatus is 'GRABB_ERR' and
+			self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN)):
+			return 'GripperError'
+			
+		elif (userdata.systemStatus is 'VACC_ERR' and
+			self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF)):	
+			return 'VacuumError'
+			
+		elif userdata.systemStatus is 'CUTT_ERR':	
+			return 'CutterError'
+		
+		else:
+			return 'ReleaseError'
+		

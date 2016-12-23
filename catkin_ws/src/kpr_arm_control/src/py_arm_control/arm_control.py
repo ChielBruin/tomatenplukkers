@@ -36,7 +36,7 @@ def createStateMachine():
 	@return a state machine object
 	'''
 	global group
-	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACC_ERROR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'])
+	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACC_ERR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'])
 	sm.userdata.status = 'OK'
 
 	with sm:											
@@ -53,7 +53,7 @@ def createStateMachine():
 											
 		smach.StateMachine.add('RepositionGripper', state.RepositionGripper(moveArmTo, group), 
 							   transitions={'Repositioned':'MoveToCucumber',
-											'RepositionFail':'CloseGripper'})
+											'RepositionFailed':'CloseGripper'})
 											
 		smach.StateMachine.add('VacuumGrip', state.VacuumGrip(writeWithDigitalFeedback), 
 							   transitions={'VacuumCreated':'Cut',
@@ -67,7 +67,7 @@ def createStateMachine():
 											
 		smach.StateMachine.add('Cut', state.Cut(writeWithDigitalFeedback), 
 							   transitions={'StemCutted':'MoveToDropoff',
-											'CutterOpenError':'ERROR'},
+											'CutterOpenError':'ERROR',
 											'CutterCloseError':'Release'},
 							   remapping={	'cutterStatus':'status'})
 											
@@ -78,9 +78,9 @@ def createStateMachine():
 											
 		smach.StateMachine.add('Release', state.Release(writeWithDigitalFeedback), 
 							   transitions={'ReleasedAll':'OK',
-											'GripperError':'GRAB_ERR'},
-											'VacuumError':'VACC_ERR'},
-											'CutterError':'CUTT_ERR'},
+											'GripperError':'GRAB_ERR',
+											'VacuumError':'VACC_ERR',
+											'CutterError':'CUTT_ERR',
 											'ReleaseError':'ERROR'},
 							   remapping={	'systemStatus':'status'})
 	return sm
