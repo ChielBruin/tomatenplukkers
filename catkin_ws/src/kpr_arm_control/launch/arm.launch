@@ -6,7 +6,7 @@
 	<arg name="testing" default="false"/>
 	<arg name="enable_rviz" default="false"/>
 
-	<include file="$(find ur_bringup)/launch/ur5_bringup.launch"> 
+	<include file="$(find kpr_arm_control)/launch/kaspr_bringup.launch"> 
 		<arg name="robot_ip" value="$(arg robot_ip)"/>
 		<arg name="limited" value="$(arg limited)"/>
 	</include>

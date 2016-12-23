@@ -6,8 +6,9 @@ import moveit_msgs.msg
 import moveit_commander
 import smach
 import smach_ros
-from cucumber_msgs.srv import HarvestAction, HarvestActionResponse
-from geometry_msgs.msg import Pose
+import tf
+from cucumber_msgs.srv import HarvestAction, HarvestActionResponse, DebugMove, DebugMoveResponse
+from geometry_msgs.msg import Pose, Quaternion
 from moveit_msgs.msg import AttachedCollisionObject
 from ur_msgs.msg import IOStates
 from ur_msgs.srv import SetIO, SetIORequest
@@ -85,7 +86,27 @@ def moveArmTo(pose_target):
 	if not group.plan():
 		return False
 	return group.go(wait=True)
-	 
+
+def moveArmToDebug (req):
+	'''
+	Debug function for moving the arm without having to create a cucumber.
+	
+	@param req: The DebugMove request sent
+	@return A DebugMoveResponse with the success codes
+	'''
+	position = req.position
+	rotation = req.rotationRPY
+	pose = Pose()
+	pose.position.x = position.x
+	pose.position.y = position.y
+	pose.position.z = position.z
+	pose.orientation = Quaternion(*tf.transformations.quaternion_from_euler(rotation.x, rotation.y, rotation.z))
+	success = moveArmTo(pose)
+	if not success :
+		return DebugMoveResponse(DebugMoveResponse.MOVE_ERR)
+	else :
+		return DebugMoveResponse(DebugMoveResponse.OK)
+
 def getCucumberCallback (req):
 	'''
 	Callback for the cucumber targets.
@@ -115,6 +136,7 @@ def setupMoveIt():
 
 	@return A triplet containing the robot- and group commander and the planning scene
 	'''
+	rospy.sleep(5)
 	moveit_commander.roscpp_initialize(sys.argv)
 	group = moveit_commander.MoveGroupCommander("manipulator")
 	robot = moveit_commander.RobotCommander()
@@ -230,6 +252,7 @@ if __name__ == '__main__':
 	rospy.init_node('ArmControl')
 	s = rospy.Service('target/cucumber', HarvestAction, getCucumberCallback)
 	aco_pub = rospy.Publisher('attached_collision_object', AttachedCollisionObject, queue_size=10)
+	s2 = rospy.Service('/debug/target', DebugMove, moveArmToDebug)
 	(robot, scene, group) = setupMoveIt()
 	io_states_sub = setupIO()
 	startingPosition = group.get_current_pose()

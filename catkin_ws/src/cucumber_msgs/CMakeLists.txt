@@ -22,6 +22,7 @@ add_message_files(
 add_service_files(
 	FILES
 	HarvestAction.srv
+	DebugMove.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

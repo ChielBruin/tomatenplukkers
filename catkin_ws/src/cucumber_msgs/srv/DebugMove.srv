@@ -1,0 +1,10 @@
+# The pose to move to.
+geometry_msgs/Vector3 position
+geometry_msgs/Vector3 rotationRPY
+---
+# The result of the harvest action.
+byte status
+
+# Possible status codes for the move.
+byte OK = 0
+byte MOVE_ERR = 4
