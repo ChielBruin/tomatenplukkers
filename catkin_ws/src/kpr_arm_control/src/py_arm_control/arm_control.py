@@ -25,7 +25,7 @@ success = {
 }
 ATTEMPTS = 10
 
-analogPinStates = [False] * 10
+analogPinStates = [False] * 2
 digitalPinStates = [False] * 10
 
 def createStateMachine():
@@ -107,9 +107,9 @@ def getCucumberCallback (req):
 	@param req: The HarvestAction request sent
 	@return A HarvestActionResponse with the success codes
 	'''
-	sm = createStateMachine()
-	sm.userdata.request = req
-	outcome = sm.execute()	
+	global stateMachine
+	stateMachine.userdata.request = req
+	outcome = stateMachine.execute()	
 	return HarvestActionResponse(success[outcome])
 
 def addSceneObjects(aco_publisher):
@@ -238,6 +238,7 @@ if __name__ == '__main__':
 	Starts moveIt! and registers subscribers/publishers.
 	'''
 	rospy.init_node('ArmControl')
+	stateMachine = createStateMachine()
 	s = rospy.Service('target/cucumber', HarvestAction, getCucumberCallback)
 	aco_pub = rospy.Publisher('attached_collision_object', AttachedCollisionObject, queue_size=10)
 	(robot, scene, group) = setupMoveIt()

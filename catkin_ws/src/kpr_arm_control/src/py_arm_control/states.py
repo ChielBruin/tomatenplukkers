@@ -67,6 +67,7 @@ class CloseGripper(smach.State):
 			if self.tries < self.maxTries:
 				self.tries += 1
 				return 'GripperFail'
+			self.tries = 0
 			userdata.gripperStatus = 'GRAB_ERR'
 			return 'GripperError'
 
@@ -115,6 +116,7 @@ class VacuumGrip(smach.State):
 			if self.tries < self.maxTries:
 				self.tries += 1
 				return 'VacuumFail'
+			self.tries = 0
 			userdata.vacuumStatus = 'VACU_ERR'
 			return 'VacuumError'
 
