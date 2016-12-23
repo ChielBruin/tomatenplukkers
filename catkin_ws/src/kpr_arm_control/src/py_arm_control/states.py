@@ -107,7 +107,7 @@ class VacuumGrip(smach.State):
 			if self.tries < self.maxTries:
 				self.tries += 1
 				return 'VacuumFail'
-			userdata.vacuumStatus = 'VACC_ERR'
+			userdata.vacuumStatus = 'VACU_ERR'
 			return 'VacuumError'
 
 class Tilt(smach.State):
@@ -185,7 +185,7 @@ class Release(smach.State):
 			self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN)):
 			return 'GripperError'
 			
-		elif (userdata.systemStatus is 'VACC_ERR' and
+		elif (userdata.systemStatus is 'VACU_ERR' and
 			self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF)):	
 			return 'VacuumError'
 			

@@ -16,11 +16,10 @@ import states as state
 import sceneObjects as sceneObj
 
 success = {
-	# TODO: add more errors to the messages
-	"ERROR": -1,
+	"ERROR": HarvestActionResponse.ERROR,
 	"OK": HarvestActionResponse.OK,
 	"GRAB_ERR": HarvestActionResponse.GRAB_ERR,
-	"VACC_ERR": HarvestActionResponse.GRAB_ERR, # TODO: fix this one also
+	"VACU_ERR": HarvestActionResponse.VACU_ERR,
 	"CUTT_ERR": HarvestActionResponse.CUTT_ERR,
 	"MOVE_ERR": HarvestActionResponse.MOVE_ERR
 }
@@ -36,7 +35,7 @@ def createStateMachine():
 	@return a state machine object
 	'''
 	global group
-	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACC_ERR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'])
+	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACU_ERR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'])
 	sm.userdata.status = 'OK'
 
 	with sm:											
@@ -79,7 +78,7 @@ def createStateMachine():
 		smach.StateMachine.add('Release', state.Release(writeWithDigitalFeedback), 
 							   transitions={'ReleasedAll':'OK',
 											'GripperError':'GRAB_ERR',
-											'VacuumError':'VACC_ERR',
+											'VacuumError':'VACU_ERR',
 											'CutterError':'CUTT_ERR',
 											'ReleaseError':'ERROR'},
 							   remapping={	'systemStatus':'status'})
