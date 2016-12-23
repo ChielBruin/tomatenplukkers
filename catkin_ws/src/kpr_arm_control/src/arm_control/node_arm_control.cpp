@@ -22,7 +22,7 @@
 
 using namespace ros;
 
-const std::string NODE_NAME = "Arm Control";
+const std::string NODE_NAME = "ArmControl";
 const std::string move_group_name("manipulator");
 
 Publisher co_publisher;
@@ -161,6 +161,7 @@ void getIOStates(const ur_msgs::IOStates msg) {
 int main(int argc, char **argv) {
 	init(argc, argv, NODE_NAME);
 	ROS_INFO("Started");
+	ROS_ERROR("This node is deprecated, please use the arm_control.py node.");
 	NodeHandle n;
 
 	ServiceServer cucumberService = n.advertiseService("target/cucumber", getCucumber);
