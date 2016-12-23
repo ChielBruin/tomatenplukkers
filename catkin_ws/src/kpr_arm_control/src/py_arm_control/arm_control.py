@@ -238,11 +238,11 @@ if __name__ == '__main__':
 	Starts moveIt! and registers subscribers/publishers.
 	'''
 	rospy.init_node('ArmControl')
-	stateMachine = createStateMachine()
 	s = rospy.Service('target/cucumber', HarvestAction, getCucumberCallback)
 	aco_pub = rospy.Publisher('attached_collision_object', AttachedCollisionObject, queue_size=10)
 	(robot, scene, group) = setupMoveIt()
 	io_states_sub = setupIO()
+	stateMachine = createStateMachine()
 	rospy.loginfo("Started")
 	addSceneObjects(aco_pub)
 	rospy.spin()
