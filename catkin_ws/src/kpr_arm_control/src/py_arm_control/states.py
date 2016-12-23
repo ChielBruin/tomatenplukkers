@@ -71,12 +71,20 @@ class CloseGripper(smach.State):
 			return 'GripperError'
 
 class RepositionGripper(smach.State):
+	'''
+	State representing the repositioning of the gripper when the gripping action fails.
+	'''
 	def __init__(self, moveArmTo, group):
 		self.moveArmTo = moveArmTo
 		self.group = group
 		smach.State.__init__(self, outcomes=['Repositioned', 'RepositionFailed'])
 
 	def execute(self, userdata):
+		'''
+		Mov the gripper away from the produce.
+		
+		@return 'Repositioned' when successful, 'RepositionFailed' otherwise
+		'''
 		rospy.loginfo('Executing state RepositionGripper')
 		pose = group.get_current_pose().pose	# TODO: Calculate the new position
 		if moveArmTo(pose):
@@ -111,12 +119,20 @@ class VacuumGrip(smach.State):
 			return 'VacuumError'
 
 class Tilt(smach.State):
+	'''
+	State representing the wrist tilt that is used when the suction cup does not 'grab' the cucumber.
+	'''
 	def __init__(self, moveArmTo, group):
 		self.moveArmTo = moveArmTo
 		self.group = group
 		smach.State.__init__(self, outcomes=['TiltOK', 'TiltError'])
 
 	def execute(self, userdata):
+		'''
+		Tilt the wrist of the arm.
+		
+		@return 'TiltOK' when successful, 'TiltError' otherwise
+		'''
 		rospy.loginfo('Executing state Tilt')
 		pose = self.group.get_current_pose().pose	# TODO: Calculate the new position
 		if self.moveArmTo(pose):
@@ -168,11 +184,21 @@ class MoveToDropoff(smach.State):
 			return 'MoveError'
 
 class Release(smach.State):
+	'''
+	State representing the releasing of the produce from the gripper.
+	'''
 	def __init__(self, setIO):
 		self.setIO = setIO
 		smach.State.__init__(self, outcomes=['ReleasedAll', 'GripperError', 'VacuumError', 'CutterError', 'ReleaseError'], input_keys=['systemStatus'])
 
 	def execute(self, userdata):
+		'''
+		Releases the cucumber by opening the gripper and disabling the vacuum.
+		When the system is in an error state, not all those actions will be performed.
+		
+		@return 'ReleasedAll' when all went well, 'ReleaseError' when releasing the produce did not succeed,
+		one of ['GripperError', 'VacuumError', 'CutterError'] when releasing went well after the system war in the corresponding error state.
+		'''
 		rospy.loginfo('Executing state Release')
 		# TODO: Swap these according to the dropping procedure, 
 		# this order seems fine for horizontal dropping in a crate.
@@ -186,7 +212,8 @@ class Release(smach.State):
 			return 'GripperError'
 			
 		elif (userdata.systemStatus is 'VACU_ERR' and
-			self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF)):	
+			self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF) and
+			self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN)):	
 			return 'VacuumError'
 			
 		elif userdata.systemStatus is 'CUTT_ERR':	
