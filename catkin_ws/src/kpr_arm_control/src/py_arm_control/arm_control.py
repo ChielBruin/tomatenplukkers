@@ -29,11 +29,11 @@ analogPinStates = [False] * 10
 digitalPinStates = [False] * 10
 
 def createStateMachine():
-'''
-Create a fresh state machine.
+	'''
+	Create a fresh state machine.
 
-@return a state machine object
-'''
+	@return a state machine object
+	'''
 	global startingPosition
 	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'CUTT_ERR', 'DROP_ERR', 'MOVE_ERR'])
 	sm.userdata.startingPosition = startingPosition
