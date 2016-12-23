@@ -158,7 +158,6 @@ def setIO(pin, value):
 	'''
 	try:
 		set_io = rospy.ServiceProxy('set_io', SetIO)
-		#set_io = rospy.ServiceProxy('set_io_testing', SetIO)	# Use these lines when testing using robot.launch
 		return set_io(SetIORequest.FUN_SET_DIGITAL_OUT, pin, value)
 	except rospy.ServiceException, e:
 		rospy.logwarn("Service call failed: %s", e)
@@ -191,8 +190,6 @@ def setupIO():
 	'''
 	rospy.wait_for_service('set_io')
 	io_states_sub = rospy.Subscriber("io_states", IOStates, IOStatesCallback);
-	#rospy.wait_for_service('set_io_testing')											# Use these lines when testing using robot.launch
-	#io_states_sub = rospy.Subscriber("io_states_testing", IOStates, IOStatesCallback);	# Use these lines when testing using robot.launch
 	return io_states_sub
 
 def writeWithDigitalFeedback(outPin, value, inPin, expected):

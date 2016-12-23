@@ -2,11 +2,18 @@
 <!-- Launch file that starts the testing nodes -->
 <launch>
 	<arg name="vnc-server" default="false"/>
-	<arg unless="$(arg vnc-server)" name="ursim" doc="The path to the ursim folder on the local filesystem."/>
+	<arg name="enable_ursim" default="true"/>
+	<group if="$(arg enable_ursim)">
+		<arg unless="$(arg vnc-server)" name="ursim" doc="The path to the ursim folder on the local filesystem."/>
+		
+		<node if="$(arg testing)" name="testing_ur_driver" pkg="ur_driver" type="driver.py" args="$(arg robot_ip)" respawn="true" respawn_delay="5">
+			<param name="limited" value="$(arg limited)"/>
+		</node>
+	</group>
 
 	<!-- Start the UR sim unless the user is running a vnc server (it would break) -->
 	<group unless="$(arg vnc-server)">
-		<node name="URsim" pkg="kpr_testing" type="URsim.sh" args="$(arg ursim)"/>
+		<node if="$(arg enable_ursim)" name="URsim" pkg="kpr_testing" type="URsim.sh" args="$(arg ursim)"/>
 	</group>
 
 	<!-- Start the node that simulates the IO pins of the UR5 -->
