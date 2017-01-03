@@ -61,7 +61,7 @@ add_dependencies(IdCB
 	cucumber_msgs_generate_messages_cpp
 )
 
-catkin_install_python(PROGRAMS src/disparityFixer/node.py
+catkin_install_python(PROGRAMS src/disparityFixer.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 #############
