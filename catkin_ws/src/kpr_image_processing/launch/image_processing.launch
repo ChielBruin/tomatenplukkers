@@ -3,4 +3,5 @@
 <launch>
 	<node name="CVis" pkg="kpr_image_processing" type="cVis"/>
 	<node name="IdCB" pkg="kpr_image_processing" type="IdCB"/>
+	<node name="disparityFixer" pkg="kpr_image_processing" type="disparityFixer.py"/>
 </launch>
