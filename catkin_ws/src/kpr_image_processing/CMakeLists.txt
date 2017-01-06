@@ -10,7 +10,9 @@ find_package(catkin REQUIRED COMPONENTS
 	cucumber_msgs
 	ros_faster_rcnn
 	stereo_msgs
+	cv_bridge
 )
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -58,6 +60,9 @@ target_link_libraries(IdCB
 add_dependencies(IdCB
 	cucumber_msgs_generate_messages_cpp
 )
+
+catkin_install_python(PROGRAMS src/disparityFixer.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 #############
 ## Install ##

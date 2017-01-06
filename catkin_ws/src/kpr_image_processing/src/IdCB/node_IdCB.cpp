@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 	cucumber_pub = n.advertise<cucumber_msgs::Cucumber>("stereo/cucumber", 20);
 	Subscriber image_left_sub = n.subscribe("left/cucumber", 1000, left_imageCallback);
 	Subscriber image_right_sub = n.subscribe("right/cucumber", 1000, right_imageCallback);
-	Subscriber disparity_sub = n.subscribe("/points2", 1000, disparityCallback);
+	Subscriber disparity_sub = n.subscribe("/disparity", 1000, disparityCallback);
 
 	spin();
 	ROS_INFO("Stopped");
