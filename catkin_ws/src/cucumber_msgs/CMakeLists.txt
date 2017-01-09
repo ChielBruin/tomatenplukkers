@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
 	FILES
 	Cucumber.msg
+	HarvestStatus.msg
 )
 
 ## Generate services in the 'srv' folder

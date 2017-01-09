@@ -4,8 +4,21 @@ cucumber_msgs/Cucumber cucumber
 # The desired dropoff location and rotation of the produce.
 geometry_msgs/Pose dropLocation
 ---
+
 # The result of the harvest action.
 byte status
+
+# The status of all the sub processes.
+# Execution status of the movement of the arm towards the target.
+HarvestStatus moveToTarget
+# Execution status of the gripping of the cucumber.
+HarvestStatus grip
+# Execution status of the cutting of the stem.
+HarvestStatus cut
+# Execution status of the movement of the arm to the dropoff location.
+HarvestStatus moveToDropoff
+# Execution status of the realeasing of the produce.
+HarvestStatus release
 
 # Possible status codes for the harvest process.
 byte OK = 0

@@ -4,6 +4,7 @@ import rospy
 import smach
 import smach_ros
 from geometry_msgs.msg import Quaternion, Pose
+from cucumber_msgs.msg import HarvestStatus
 
 # Output pins
 VACUUM_OUT = 1
@@ -28,7 +29,7 @@ class MoveToCucumber(smach.State):
 	'''
 	def __init__(self, moveArmTo):
 		self.moveArmTo = moveArmTo
-		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'], input_keys=['data'])
+		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'], input_keys=['data', 'result'], output_keys=['result'])
 
 	def execute(self, userdata):
 		'''
@@ -39,9 +40,15 @@ class MoveToCucumber(smach.State):
 		rospy.loginfo('Executing state MoveToCucumber')
 		pose = Pose(userdata.data.cucumber.stem_position, Quaternion(0,0,0,1))
 		# TODO: Make the last section of movement straight towards the produce
-		if self.moveArmTo(pose):
+		(plan, move) = self.moveArmTo(pose)
+		if not plan:
+			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning the movement')
+			return 'MoveError'
+		if move:
+			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 			return 'MoveOK'
 		else:
+			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving to the target')
 			return 'MoveError'
 
 class CloseGripper(smach.State):
@@ -50,7 +57,8 @@ class CloseGripper(smach.State):
 	'''
 	def __init__(self, setIO):
 		self.setIO = setIO
-		smach.State.__init__(self, outcomes=['GripperClosed', 'GripperFail', 'GripperError'], output_keys=['gripperStatus'])
+		smach.State.__init__(self, outcomes=['GripperClosed', 'GripperFail', 'GripperError'], 
+			input_keys=['result'], output_keys=['gripperStatus', 'result'])
 		self.tries = 0
 		self.maxTries = 3
 
@@ -62,12 +70,14 @@ class CloseGripper(smach.State):
 		'''
 		rospy.loginfo('Executing state CloseGripper')
 		if self.setIO(GRIPPER_OUT, GRIPPER_CLOSE, GRIPPER_IN, GRIPPER_CLOSE):
+			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 			return 'GripperClosed'
 		else:
 			if self.tries < self.maxTries:
 				self.tries += 1
 				return 'GripperFail'
 			self.tries = 0
+			userdata.result.grip = HarvestStatus(success = HarvestStatus.ERROR, message = 'Cannot grab the cucumber')
 			userdata.gripperStatus = 'GRAB_ERR'
 			return 'GripperError'
 
@@ -88,7 +98,7 @@ class RepositionGripper(smach.State):
 		'''
 		rospy.loginfo('Executing state RepositionGripper')
 		pose = group.get_current_pose().pose	# TODO: Calculate the new position
-		if moveArmTo(pose):
+		if moveArmTo(pose)[1]:
 			return 'Repositioned'
 		else:
 			return 'RepositionFailed'
@@ -99,7 +109,8 @@ class VacuumGrip(smach.State):
 	'''
 	def __init__(self, setIO):
 		self.setIO = setIO
-		smach.State.__init__(self, outcomes=['VacuumCreated', 'VacuumFail', 'VacuumError'], output_keys=['vacuumStatus'])
+		smach.State.__init__(self, outcomes=['VacuumCreated', 'VacuumFail', 'VacuumError'], 
+			input_keys=['result'], output_keys=['vacuumStatus', 'result'])
 		self.tries = 0
 		self.maxTries = 3
 
@@ -111,12 +122,14 @@ class VacuumGrip(smach.State):
 		'''
 		rospy.loginfo('Executing state VacuumGrip')
 		if self.setIO(VACUUM_OUT, VACUUM_ON, VACUUM_IN, VACUUM_ON):
+			userdata.result.grip = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 			return 'VacuumCreated'
 		else:
 			if self.tries < self.maxTries:
 				self.tries += 1
 				return 'VacuumFail'
 			self.tries = 0
+			userdata.result.grip = HarvestStatus(success = HarvestStatus.ERROR, message = 'Cannot create vacuum')
 			userdata.vacuumStatus = 'VACU_ERR'
 			return 'VacuumError'
 
@@ -137,7 +150,7 @@ class Tilt(smach.State):
 		'''
 		rospy.loginfo('Executing state Tilt')
 		pose = self.group.get_current_pose().pose	# TODO: Calculate the new position
-		if self.moveArmTo(pose):
+		if self.moveArmTo(pose)[1]:
 			return 'TiltOK'
 		else:
 			return 'TiltError'
@@ -148,7 +161,8 @@ class Cut(smach.State):
 	'''
 	def __init__(self, setIO):
 		self.setIO = setIO
-		smach.State.__init__(self, outcomes=['StemCutted', 'CutterOpenError', 'CutterCloseError'], output_keys=['cutterStatus'])
+		smach.State.__init__(self, outcomes=['StemCutted', 'CutterOpenError', 'CutterCloseError'], 
+			input_keys=['result'], output_keys=['cutterStatus', 'result'])
 		
 	def execute(self, userdata):
 		'''
@@ -159,10 +173,13 @@ class Cut(smach.State):
 		rospy.loginfo('Executing state Cut')
 		if self.setIO(CUTTER_OUT, CUTTER_CLOSE, CUTTER_IN, CUTTER_CLOSE):
 			if self.setIO(CUTTER_OUT, CUTTER_OPEN, CUTTER_IN, CUTTER_OPEN):
+				userdata.result.cut = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 				return 'StemCutted'
 			else:
+				userdata.result.cut = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the cutter')
 				return 'CutterOpenError'
-			userdata.cutterStatus = 'CUTT_ERR'
+		userdata.cutterStatus = 'CUTT_ERR'
+		userdata.result.cut = HarvestStatus(success = HarvestStatus.ERROR, message = 'Cannot close the cutter')
 		return 'CutterCloseError'
 
 class MoveToDropoff(smach.State):
@@ -171,7 +188,8 @@ class MoveToDropoff(smach.State):
 	'''
 	def __init__(self, moveArmTo):
 		self.moveArmTo = moveArmTo
-		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'], input_keys=['data'])
+		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'], 
+			input_keys=['result', 'data'], output_keys=['result'])
 
 	def execute(self, userdata):
 		'''
@@ -180,9 +198,15 @@ class MoveToDropoff(smach.State):
 		@return 'MoveOK' when the move was successful, 'MoveError' otherwise
 		'''
 		rospy.loginfo('Executing state MoveToDropoff')
-		if self.moveArmTo(userdata.data.dropLocation):
+		(plan, move) = self.moveArmTo(userdata.data.dropLocation)
+		if not plan:
+			userdata.result.moveToDropoff = HarvestStatus(success = HarvestStatus.FATAL, message = 'Error planning the movement')
+			return 'MoveError'			
+		if move:
+			userdata.result.moveToDropoff = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 			return 'MoveOK'
 		else:
+			userdata.result.moveToDropoff = HarvestStatus(success = HarvestStatus.FATAL, message = 'Error moving to the target')
 			return 'MoveError'
 
 class Release(smach.State):
@@ -191,7 +215,8 @@ class Release(smach.State):
 	'''
 	def __init__(self, setIO):
 		self.setIO = setIO
-		smach.State.__init__(self, outcomes=['ReleasedAll', 'GripperError', 'VacuumError', 'CutterError', 'ReleaseError'], input_keys=['systemStatus'])
+		smach.State.__init__(self, outcomes=['ReleasedAll', 'GripperError', 'VacuumError', 'CutterError', 'ReleaseError'], 
+			input_keys=['systemStatus', 'result'], output_keys=['result'])
 
 	def execute(self, userdata):
 		'''
@@ -204,23 +229,33 @@ class Release(smach.State):
 		rospy.loginfo('Executing state Release')
 		# TODO: Swap these according to the dropping procedure, 
 		# this order seems fine for horizontal dropping in a crate.
-		if (userdata.systemStatus is 'OK' and
-			self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN) and
-			self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF)):
-			return 'ReleasedAll'
+		if (userdata.systemStatus is 'OK'):
+			if (self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN) and
+				self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF)):
+				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+				return 'ReleasedAll'
+			else:
+				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot release the produce')
+				
 			
-		elif (userdata.systemStatus is 'GRABB_ERR' and
-			self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN)):
-			return 'GripperError'
+		elif userdata.systemStatus is 'GRABB_ERR':
+			if self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN):
+				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
+				return 'GripperError'
+			else:
+				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 			
-		elif (userdata.systemStatus is 'VACU_ERR' and
-			self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF) and
-			self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN)):	
-			return 'VacuumError'
+		elif userdata.systemStatus is 'VACU_ERR':
+			if (self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF) and
+				self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN)):
+				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')	
+				return 'VacuumError'
+			else:
+				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot release the produce')
 			
-		elif userdata.systemStatus is 'CUTT_ERR':	
+		elif userdata.systemStatus is 'CUTT_ERR':
+			userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 			return 'CutterError'
 		
-		else:
-			return 'ReleaseError'
+		return 'ReleaseError'
 		

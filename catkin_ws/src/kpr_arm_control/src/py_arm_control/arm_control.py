@@ -35,20 +35,25 @@ def createStateMachine():
 	@return a state machine object
 	'''
 	global group
-	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACU_ERR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'])
+	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACU_ERR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'],
+							input_keys=['status', 'result', 'request'],
+							output_keys=['result', 'status'])
 	sm.userdata.status = 'OK'
+	sm.userdata.result = HarvestActionResponse()
 
 	with sm:											
 		smach.StateMachine.add('MoveToCucumber', state.MoveToCucumber(moveArmTo), 
 							   transitions={'MoveOK':'CloseGripper',
 											'MoveError':'MOVE_ERR'},
-							   remapping={	'data':'request'})
+							   remapping={	'data':'request',
+											'result':'result'})
 											
 		smach.StateMachine.add('CloseGripper', state.CloseGripper(writeWithDigitalFeedback), 
 							   transitions={'GripperClosed':'VacuumGrip',
 											'GripperFail':'RepositionGripper',
 											'GripperError':'Release'},
-							   remapping={	'gripperStatus':'status'})
+							   remapping={	'gripperStatus':'status',
+											'result':'result'})
 											
 		smach.StateMachine.add('RepositionGripper', state.RepositionGripper(moveArmTo, group), 
 							   transitions={'Repositioned':'MoveToCucumber',
@@ -58,7 +63,8 @@ def createStateMachine():
 							   transitions={'VacuumCreated':'Cut',
 											'VacuumFail':'Tilt',
 											'VacuumError':'Release'},
-							   remapping={	'vacuumStatus':'status'})
+							   remapping={	'vacuumStatus':'status',
+											'result':'result'})
 											
 		smach.StateMachine.add('Tilt', state.Tilt(moveArmTo, group), 
 							   transitions={'TiltOK':'VacuumGrip',
@@ -68,12 +74,14 @@ def createStateMachine():
 							   transitions={'StemCutted':'MoveToDropoff',
 											'CutterOpenError':'ERROR',
 											'CutterCloseError':'Release'},
-							   remapping={	'cutterStatus':'status'})
+							   remapping={	'cutterStatus':'status',
+											'result':'result'})
 											
 		smach.StateMachine.add('MoveToDropoff', state.MoveToDropoff(moveArmTo), 
 							   transitions={'MoveOK':'Release',
-											'MoveError':'MOVE_ERR'},
-							   remapping={	'data':'request'})
+											'MoveError':'ERROR'},
+							   remapping={	'data':'request',
+											'result':'result'})
 											
 		smach.StateMachine.add('Release', state.Release(writeWithDigitalFeedback), 
 							   transitions={'ReleasedAll':'OK',
@@ -81,7 +89,8 @@ def createStateMachine():
 											'VacuumError':'VACU_ERR',
 											'CutterError':'CUTT_ERR',
 											'ReleaseError':'ERROR'},
-							   remapping={	'systemStatus':'status'})
+							   remapping={	'systemStatus':'status',
+											'result':'result'})
 	return sm
 
 def moveArmTo(pose_target):
@@ -89,15 +98,17 @@ def moveArmTo(pose_target):
 	Plan the movement to the specified position and move the arm.
 
 	@param pose_target: The Pose of the goal posisiton
-	@return True when the move succeded, False otherwise
+	@return Tuple (a, b) 
+		a: True when the move planning succeeded, False otherwise
+		b: True when the move succeeded, False otherwise
 	'''
 	global group, robot
 	group.set_start_state_to_current_state()
 	group.clear_pose_targets()
 	group.set_pose_target(pose_target)
 	if not group.plan():
-		return False
-	return group.go(wait=True)
+		return (False, False)
+	return (True, group.go(wait=True))
 	 
 def getCucumberCallback (req):
 	'''
@@ -109,8 +120,10 @@ def getCucumberCallback (req):
 	'''
 	global stateMachine
 	stateMachine.userdata.request = req
-	outcome = stateMachine.execute()	
-	return HarvestActionResponse(success[outcome])
+	outcome = stateMachine.execute()
+	response = stateMachine.userdata.result
+	response.status = success[outcome]
+	return response
 
 def addSceneObjects(aco_publisher):
 	'''

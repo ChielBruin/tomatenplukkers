@@ -84,9 +84,13 @@ int main(int argc, char **argv) {
 		cucumber_msgs::HarvestAction srv;
 		srv.request.cucumber = msg;
 		srv.request.dropLocation = CRATE_POSITION;
-		if (!arm_controller.call(srv) || srv.response.status != cucumber_msgs::HarvestAction::Response::OK) {
-				//TODO: ERROR handling
+		
+		if (!arm_controller.call(srv)) {
+			ROS_FATAL("Error while calling service 'HarvestAction', the arm_control might have crashed");
+			break;
 		}
+		
+		if(!processResult(srv.response)) break;
 	}
 	
 	ROS_INFO("Stopped");	

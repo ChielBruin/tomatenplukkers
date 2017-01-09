@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include "cucumber_msgs/CucumberContainer.h"
+#include "cucumber_msgs/HarvestAction.h"
 
 std::vector<CucumberContainer> queue;
 std::map<std::string, std::string> settings;
@@ -61,4 +62,8 @@ void setSettings(std::map<std::string, std::string> newSettings) {
 		return;
 	}
 	settings = newSettings;
+}
+
+bool processResult(cucumber_msgs::HarvestAction::Response status) {
+	return true;
 }
