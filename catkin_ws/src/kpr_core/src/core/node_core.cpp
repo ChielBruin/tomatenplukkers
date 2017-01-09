@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 	ROS_INFO("Started");
 
 	NodeHandle n;
-	ServiceClient arm_controller = n.serviceClient<cucumber_msgs::HarvestAction>("target/srv");
+	ServiceClient arm_controller = n.serviceClient<cucumber_msgs::HarvestAction>("/target/cucumber");
 	Publisher target_pub = n.advertise<cucumber_msgs::Cucumber>("target", 2);
 	Subscriber image_sub = n.subscribe("stereo/cucumber", 10, cucumberCallback);
 	Subscriber settings_sub = n.subscribe("settings/update", 10, settingsCallback);
@@ -90,7 +90,11 @@ int main(int argc, char **argv) {
 			break;
 		}
 		
-		if(!processResult(srv.response)) break;
+		if(!processResult(srv.response.moveToTarget)) break;
+		if(!processResult(srv.response.grip)) break;
+		if(!processResult(srv.response.cut)) break;
+		if(!processResult(srv.response.moveToDropoff)) break;
+		if(!processResult(srv.response.release)) break;
 	}
 	
 	ROS_INFO("Stopped");	

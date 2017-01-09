@@ -35,9 +35,7 @@ def createStateMachine():
 	@return a state machine object
 	'''
 	global group
-	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACU_ERR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'],
-							input_keys=['status', 'result', 'request'],
-							output_keys=['result', 'status'])
+	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACU_ERR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'])
 	sm.userdata.status = 'OK'
 	sm.userdata.result = HarvestActionResponse()
 

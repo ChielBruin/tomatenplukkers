@@ -97,8 +97,8 @@ class RepositionGripper(smach.State):
 		@return 'Repositioned' when successful, 'RepositionFailed' otherwise
 		'''
 		rospy.loginfo('Executing state RepositionGripper')
-		pose = group.get_current_pose().pose	# TODO: Calculate the new position
-		if moveArmTo(pose)[1]:
+		pose = self.group.get_current_pose().pose	# TODO: Calculate the new position
+		if self.moveArmTo(pose)[1]:
 			return 'Repositioned'
 		else:
 			return 'RepositionFailed'

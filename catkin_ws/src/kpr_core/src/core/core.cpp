@@ -1,6 +1,6 @@
 #include "ros/ros.h"
 #include "cucumber_msgs/CucumberContainer.h"
-#include "cucumber_msgs/HarvestAction.h"
+#include "cucumber_msgs/HarvestStatus.h"
 
 std::vector<CucumberContainer> queue;
 std::map<std::string, std::string> settings;
@@ -64,6 +64,15 @@ void setSettings(std::map<std::string, std::string> newSettings) {
 	settings = newSettings;
 }
 
-bool processResult(cucumber_msgs::HarvestAction::Response status) {
+bool processResult(cucumber_msgs::HarvestStatus msg) {
+	if(msg.success != cucumber_msgs::HarvestStatus::OK) {
+		if(msg.success == cucumber_msgs::HarvestStatus::ERROR) {
+			ROS_WARN("%s", msg.message.c_str());
+			return true;
+		} else {
+			ROS_FATAL("%s", msg.message.c_str());
+			return false;
+		}
+	}
 	return true;
 }
