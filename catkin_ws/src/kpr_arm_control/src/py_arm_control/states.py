@@ -3,6 +3,7 @@
 import rospy
 import smach
 import smach_ros
+import tf
 from geometry_msgs.msg import Quaternion, Pose
 from cucumber_msgs.msg import HarvestStatus
 
@@ -38,7 +39,9 @@ class MoveToCucumber(smach.State):
 		@return 'MoveOK' when the move was successful, 'MoveError' otherwise
 		'''
 		rospy.loginfo('Executing state MoveToCucumber')
-		pose = Pose(userdata.data.cucumber.stem_position, Quaternion(0,0,0,1))
+		q = tf.transformations.quaternion_from_euler(0, 0, .5*3.14)		
+		pose = Pose(userdata.data.cucumber.stem_position, Quaternion(q[0], q[1], q[2], q[3]))
+		
 		# TODO: Make the last section of movement straight towards the produce
 		(plan, move) = self.moveArmTo(pose)
 		if not plan:
@@ -149,12 +152,27 @@ class Tilt(smach.State):
 		@return 'TiltOK' when successful, 'TiltError' otherwise
 		'''
 		rospy.loginfo('Executing state Tilt')
-		pose = self.group.get_current_pose().pose	# TODO: Calculate the new position
+		
+		pose = self.rotate(self.group.get_current_pose().pose, -1) # ~60 degrees
+		
 		if self.moveArmTo(pose)[1]:
-			return 'TiltOK'
-		else:
-			return 'TiltError'
-			
+			pose = self.rotate(self.group.get_current_pose().pose, 1)
+			if self.moveArmTo(pose)[1]:
+				return 'TiltOK'
+		return 'TiltError'
+	
+	def rotate(self, pose, angle):
+		q = pose.orientation
+		o = (q.x, q.y, q.z, q.w)
+		rotation = tf.transformations.quaternion_from_euler(0, angle, 0)	# TODO: check for the correct axis
+		a = tf.transformations.quaternion_multiply(o, rotation)
+		pose.orientation.x = a[0]
+		pose.orientation.y = a[1]
+		pose.orientation.z = a[2]
+		pose.orientation.w = a[3]
+		
+		return pose
+		
 class Cut(smach.State):
 	'''
 	State representing the cutting of the stem of the cucumber.

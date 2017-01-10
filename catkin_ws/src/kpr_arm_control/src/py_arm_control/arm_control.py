@@ -266,6 +266,7 @@ if __name__ == '__main__':
 	io_states_sub = setupIO()
 	stateMachine = createStateMachine()
 	rospy.loginfo("Started")
+	rospy.sleep(2)
 	addSceneObjects(aco_pub)
 	rospy.spin()
 	moveit_commander.roscpp_shutdown()
