@@ -41,17 +41,25 @@ class MoveToCucumber(smach.State):
 		rospy.loginfo('Executing state MoveToCucumber')
 		q = tf.transformations.quaternion_from_euler(0, 0, .5*3.14)		
 		pose = Pose(userdata.data.cucumber.stem_position, Quaternion(q[0], q[1], q[2], q[3]))
-		
-		# TODO: Make the last section of movement straight towards the produce
+		pose.position.y = pose.position.y - 0.1
 		(plan, move) = self.moveArmTo(pose)
 		if not plan:
-			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning the movement')
+			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning the movement to the grasp start position')
 			return 'MoveError'
 		if move:
-			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
-			return 'MoveOK'
+			pose.position.y = pose.position.y + 0.1
+			(plan, move) = self.moveArmTo(pose)
+			if not plan:
+				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning straight the movement to the produce')
+				return 'MoveError'
+			if move:
+				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+				return 'MoveOK'
+			else:
+				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving straight to to the target')
+				return 'MoveError'
 		else:
-			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving to the target')
+			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving to the target grasp start position')
 			return 'MoveError'
 
 class CloseGripper(smach.State):
