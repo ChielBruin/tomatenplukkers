@@ -162,10 +162,10 @@ class Tilt(smach.State):
 		'''
 		rospy.loginfo('Executing state Tilt')
 		
-		pose = self.rotate(self.group.get_current_pose().pose, -1) # ~60 degrees
+		pose = self.rotate(self.group.get_current_pose().pose, -.25) # ~15 degrees
 		
 		if self.moveArmTo(pose)[1]:
-			pose = self.rotate(self.group.get_current_pose().pose, 1)
+			pose = self.rotate(self.group.get_current_pose().pose, 25)
 			if self.moveArmTo(pose)[1]:
 				return 'TiltOK'
 		return 'TiltError'
