@@ -23,10 +23,11 @@ def disparityCallback(msg):
 	global disparity_pub, bridge, kernel
 	try:
 		img = bridge.imgmsg_to_cv2(msg.image, desired_encoding="8UC1")
-		closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+		res = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+		res = cv2.blur(res, (5,5))
 		#cv2.imshow('before',img)
-		#cv2.imshow('after',closing)
-		msg.image = bridge.cv2_to_imgmsg(closing)
+		#cv2.imshow('after',res)
+		msg.image = bridge.cv2_to_imgmsg(res)
 	except CvBridgeError as e:
 		rospy.logerr("Error converting images: %s", e)
 		
