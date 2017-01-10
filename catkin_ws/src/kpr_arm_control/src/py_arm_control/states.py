@@ -171,14 +171,23 @@ class Tilt(smach.State):
 		return 'TiltError'
 	
 	def rotate(self, pose, angle):
-		q = pose.orientation
-		o = (q.x, q.y, q.z, q.w)
-		rotation = tf.transformations.quaternion_from_euler(0, angle, 0)	# TODO: check for the correct axis
-		a = tf.transformations.quaternion_multiply(o, rotation)
-		pose.orientation.x = a[0]
-		pose.orientation.y = a[1]
-		pose.orientation.z = a[2]
-		pose.orientation.w = a[3]
+		'''
+		Calculate the new pose after applying a rotation to the old pose.
+		
+		@param pose: The current pose
+		@param angle: The angle in radians that it must turn.
+		@return: The new pose
+		'''
+		o = pose.orientation
+		orientation = (o.x, o.y, o.z, o.w)
+		
+		rotation = tf.transformations.quaternion_from_euler(0, angle, 0)
+		o = tf.transformations.quaternion_multiply(orientation, rotation)
+		
+		pose.orientation.x = o[0]
+		pose.orientation.y = o[1]
+		pose.orientation.z = o[2]
+		pose.orientation.w = o[3]
 		
 		return pose
 		
