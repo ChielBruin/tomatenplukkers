@@ -107,6 +107,17 @@ def moveArmTo(pose_target):
 	if not group.plan():
 		return (False, False)
 	return (True, group.go(wait=True))
+	
+def setJointPositions(joint_states):
+	global group, robot
+	group.set_start_state_to_current_state()
+	group.clear_pose_targets()
+	
+	group.set_joint_value_target(joint_states)
+
+	if not group.plan():
+		return (False, False)
+	return (True, group.go(wait=True))
 	 
 def getCucumberCallback (req):
 	'''
