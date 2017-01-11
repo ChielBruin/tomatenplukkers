@@ -258,4 +258,3 @@ class Release(smach.State):
 			return 'CutterError'
 		
 		return 'ReleaseError'
-		
