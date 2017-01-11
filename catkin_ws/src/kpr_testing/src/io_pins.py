@@ -212,7 +212,7 @@ def main():
 	rospy.loginfo("Started")
 	s = rospy.Service('set_io_testing', SetIO, request)
 	display()
-	io_state_pub = rospy.Publisher("io_states", IOStates, queue_size=10)
+	io_state_pub = rospy.Publisher("io_states_testing", IOStates, queue_size=10)
 
 
 	with raw_mode(sys.stdin):

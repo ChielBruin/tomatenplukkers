@@ -16,16 +16,16 @@ import states as state
 import sceneObjects as sceneObj
 
 success = {
+	"ERROR": HarvestActionResponse.ERROR,
 	"OK": HarvestActionResponse.OK,
 	"GRAB_ERR": HarvestActionResponse.GRAB_ERR,
+	"VACU_ERR": HarvestActionResponse.VACU_ERR,
 	"CUTT_ERR": HarvestActionResponse.CUTT_ERR,
-	"DROP_ERR": HarvestActionResponse.DROP_ERR,
 	"MOVE_ERR": HarvestActionResponse.MOVE_ERR
 }
-startingPosition = Pose()
 ATTEMPTS = 10
 
-analogPinStates = [False] * 10
+analogPinStates = [False] * 2
 digitalPinStates = [False] * 10
 
 def createStateMachine():
@@ -34,9 +34,9 @@ def createStateMachine():
 
 	@return a state machine object
 	'''
-	global startingPosition
-	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'CUTT_ERR', 'DROP_ERR', 'MOVE_ERR'])
-	sm.userdata.startingPosition = startingPosition
+	global group
+	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACU_ERR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'])
+	sm.userdata.status = 'OK'
 
 	with sm:											
 		smach.StateMachine.add('MoveToCucumber', state.MoveToCucumber(moveArmTo), 
@@ -46,29 +46,42 @@ def createStateMachine():
 											
 		smach.StateMachine.add('CloseGripper', state.CloseGripper(writeWithDigitalFeedback), 
 							   transitions={'GripperClosed':'VacuumGrip',
-											'GripperError':'GRAB_ERR'})
+											'GripperFail':'RepositionGripper',
+											'GripperError':'Release'},
+							   remapping={	'gripperStatus':'status'})
+											
+		smach.StateMachine.add('RepositionGripper', state.RepositionGripper(moveArmTo, group), 
+							   transitions={'Repositioned':'MoveToCucumber',
+											'RepositionFailed':'CloseGripper'})
 											
 		smach.StateMachine.add('VacuumGrip', state.VacuumGrip(writeWithDigitalFeedback), 
 							   transitions={'VacuumCreated':'Cut',
-											'VacuumError':'GRAB_ERR'})
+											'VacuumFail':'Tilt',
+											'VacuumError':'Release'},
+							   remapping={	'vacuumStatus':'status'})
+											
+		smach.StateMachine.add('Tilt', state.Tilt(moveArmTo, group), 
+							   transitions={'TiltOK':'VacuumGrip',
+											'TiltError':'VacuumGrip'})
 											
 		smach.StateMachine.add('Cut', state.Cut(writeWithDigitalFeedback), 
 							   transitions={'StemCutted':'MoveToDropoff',
-											'CutterError':'CUTT_ERR'})
+											'CutterOpenError':'ERROR',
+											'CutterCloseError':'Release'},
+							   remapping={	'cutterStatus':'status'})
 											
 		smach.StateMachine.add('MoveToDropoff', state.MoveToDropoff(moveArmTo), 
-							   transitions={'MoveOK':'OpenGripper',
+							   transitions={'MoveOK':'Release',
 											'MoveError':'MOVE_ERR'},
 							   remapping={	'data':'request'})
 											
-		smach.StateMachine.add('OpenGripper', state.OpenGripper(writeWithDigitalFeedback), 
-							   transitions={'GripperOpened':'MoveToStart',
-											'GripperError':'GRAB_ERR'})
-											
-		smach.StateMachine.add('MoveToStart', state.MoveToStart(moveArmTo), 
-							   transitions={'MoveOK':'OK',
-											'MoveError':'MOVE_ERR'},
-							   remapping={	'start':'startingPosition'})
+		smach.StateMachine.add('Release', state.Release(writeWithDigitalFeedback), 
+							   transitions={'ReleasedAll':'OK',
+											'GripperError':'GRAB_ERR',
+											'VacuumError':'VACU_ERR',
+											'CutterError':'CUTT_ERR',
+											'ReleaseError':'ERROR'},
+							   remapping={	'systemStatus':'status'})
 	return sm
 
 def moveArmTo(pose_target):
@@ -94,9 +107,9 @@ def getCucumberCallback (req):
 	@param req: The HarvestAction request sent
 	@return A HarvestActionResponse with the success codes
 	'''
-	sm = createStateMachine()
-	sm.userdata.request = req
-	outcome = sm.execute()	
+	global stateMachine
+	stateMachine.userdata.request = req
+	outcome = stateMachine.execute()	
 	return HarvestActionResponse(success[outcome])
 
 def addSceneObjects(aco_publisher):
@@ -144,7 +157,6 @@ def setIO(pin, value):
 	'''
 	try:
 		set_io = rospy.ServiceProxy('set_io', SetIO)
-		#set_io = rospy.ServiceProxy('set_io_testing', SetIO)	# Use these lines when testing using robot.launch
 		return set_io(SetIORequest.FUN_SET_DIGITAL_OUT, pin, value)
 	except rospy.ServiceException, e:
 		rospy.logwarn("Service call failed: %s", e)
@@ -177,8 +189,6 @@ def setupIO():
 	'''
 	rospy.wait_for_service('set_io')
 	io_states_sub = rospy.Subscriber("io_states", IOStates, IOStatesCallback);
-	#rospy.wait_for_service('set_io_testing')											# Use these lines when testing using robot.launch
-	#io_states_sub = rospy.Subscriber("io_states_testing", IOStates, IOStatesCallback);	# Use these lines when testing using robot.launch
 	return io_states_sub
 
 def writeWithDigitalFeedback(outPin, value, inPin, expected):
@@ -232,7 +242,7 @@ if __name__ == '__main__':
 	aco_pub = rospy.Publisher('attached_collision_object', AttachedCollisionObject, queue_size=10)
 	(robot, scene, group) = setupMoveIt()
 	io_states_sub = setupIO()
-	startingPosition = group.get_current_pose()
+	stateMachine = createStateMachine()
 	rospy.loginfo("Started")
 	addSceneObjects(aco_pub)
 	rospy.spin()

@@ -50,7 +50,9 @@ class CloseGripper(smach.State):
 	'''
 	def __init__(self, setIO):
 		self.setIO = setIO
-		smach.State.__init__(self, outcomes=['GripperClosed', 'GripperError'])
+		smach.State.__init__(self, outcomes=['GripperClosed', 'GripperFail', 'GripperError'], output_keys=['gripperStatus'])
+		self.tries = 0
+		self.maxTries = 3
 
 	def execute(self, userdata):
 		'''
@@ -62,7 +64,34 @@ class CloseGripper(smach.State):
 		if self.setIO(GRIPPER_OUT, GRIPPER_CLOSE, GRIPPER_IN, GRIPPER_CLOSE):
 			return 'GripperClosed'
 		else:
+			if self.tries < self.maxTries:
+				self.tries += 1
+				return 'GripperFail'
+			self.tries = 0
+			userdata.gripperStatus = 'GRAB_ERR'
 			return 'GripperError'
+
+class RepositionGripper(smach.State):
+	'''
+	State representing the repositioning of the gripper when the gripping action fails.
+	'''
+	def __init__(self, moveArmTo, group):
+		self.moveArmTo = moveArmTo
+		self.group = group
+		smach.State.__init__(self, outcomes=['Repositioned', 'RepositionFailed'])
+
+	def execute(self, userdata):
+		'''
+		Mov the gripper away from the produce.
+		
+		@return 'Repositioned' when successful, 'RepositionFailed' otherwise
+		'''
+		rospy.loginfo('Executing state RepositionGripper')
+		pose = group.get_current_pose().pose	# TODO: Calculate the new position
+		if moveArmTo(pose):
+			return 'Repositioned'
+		else:
+			return 'RepositionFailed'
 
 class VacuumGrip(smach.State):
 	'''
@@ -70,7 +99,9 @@ class VacuumGrip(smach.State):
 	'''
 	def __init__(self, setIO):
 		self.setIO = setIO
-		smach.State.__init__(self, outcomes=['VacuumCreated', 'VacuumError'])
+		smach.State.__init__(self, outcomes=['VacuumCreated', 'VacuumFail', 'VacuumError'], output_keys=['vacuumStatus'])
+		self.tries = 0
+		self.maxTries = 3
 
 	def execute(self, userdata):
 		'''
@@ -82,16 +113,42 @@ class VacuumGrip(smach.State):
 		if self.setIO(VACUUM_OUT, VACUUM_ON, VACUUM_IN, VACUUM_ON):
 			return 'VacuumCreated'
 		else:
-			# TODO: Tilt wrist and try again using a new state
+			if self.tries < self.maxTries:
+				self.tries += 1
+				return 'VacuumFail'
+			self.tries = 0
+			userdata.vacuumStatus = 'VACU_ERR'
 			return 'VacuumError'
 
+class Tilt(smach.State):
+	'''
+	State representing the wrist tilt that is used when the suction cup does not 'grab' the cucumber.
+	'''
+	def __init__(self, moveArmTo, group):
+		self.moveArmTo = moveArmTo
+		self.group = group
+		smach.State.__init__(self, outcomes=['TiltOK', 'TiltError'])
+
+	def execute(self, userdata):
+		'''
+		Tilt the wrist of the arm.
+		
+		@return 'TiltOK' when successful, 'TiltError' otherwise
+		'''
+		rospy.loginfo('Executing state Tilt')
+		pose = self.group.get_current_pose().pose	# TODO: Calculate the new position
+		if self.moveArmTo(pose):
+			return 'TiltOK'
+		else:
+			return 'TiltError'
+			
 class Cut(smach.State):
 	'''
 	State representing the cutting of the stem of the cucumber.
 	'''
 	def __init__(self, setIO):
 		self.setIO = setIO
-		smach.State.__init__(self, outcomes=['StemCutted', 'CutterError'])
+		smach.State.__init__(self, outcomes=['StemCutted', 'CutterOpenError', 'CutterCloseError'], output_keys=['cutterStatus'])
 		
 	def execute(self, userdata):
 		'''
@@ -103,7 +160,10 @@ class Cut(smach.State):
 		if self.setIO(CUTTER_OUT, CUTTER_CLOSE, CUTTER_IN, CUTTER_CLOSE):
 			if self.setIO(CUTTER_OUT, CUTTER_OPEN, CUTTER_IN, CUTTER_OPEN):
 				return 'StemCutted'
-		return 'CutterError'
+			else:
+				return 'CutterOpenError'
+			userdata.cutterStatus = 'CUTT_ERR'
+		return 'CutterCloseError'
 
 class MoveToDropoff(smach.State):
 	'''
@@ -125,45 +185,42 @@ class MoveToDropoff(smach.State):
 		else:
 			return 'MoveError'
 
-class OpenGripper(smach.State):
+class Release(smach.State):
 	'''
-	State representing the opening of the gripper and releasing the produce.
+	State representing the releasing of the produce from the gripper.
 	'''
 	def __init__(self, setIO):
 		self.setIO = setIO
-		smach.State.__init__(self, outcomes=['GripperOpened', 'GripperError'])
+		smach.State.__init__(self, outcomes=['ReleasedAll', 'GripperError', 'VacuumError', 'CutterError', 'ReleaseError'], input_keys=['systemStatus'])
 
 	def execute(self, userdata):
 		'''
-		Drop the produce by opeing the gripper and removing the vacuum.
+		Releases the cucumber by opening the gripper and disabling the vacuum.
+		When the system is in an error state, not all those actions will be performed.
 		
-		@return 'GripperOpened' when the produce is dropped correctly, 'GripperError' otherwise
+		@return 'ReleasedAll' when all went well, 'ReleaseError' when releasing the produce did not succeed,
+		one of ['GripperError', 'VacuumError', 'CutterError'] when releasing went well after the system war in the corresponding error state.
 		'''
-		rospy.loginfo('Executing state OpenGripper')
+		rospy.loginfo('Executing state Release')
 		# TODO: Swap these according to the dropping procedure, 
 		# this order seems fine for horizontal dropping in a crate.
-		if self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN):
-			if self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF):
-				return 'GripperOpened'
-		return 'GripperError'
-
-class MoveToStart(smach.State):
-	'''
-	State representing the movement of the arm while returning to its initial position.
-	'''
-	def __init__(self, moveArmTo):
-		self.moveArmTo = moveArmTo
-		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'], input_keys=['start'])
-
-	def execute(self, userdata):
-		'''
-		Move the arm to the initial starting location provided by the input data.
+		if (userdata.systemStatus is 'OK' and
+			self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN) and
+			self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF)):
+			return 'ReleasedAll'
+			
+		elif (userdata.systemStatus is 'GRABB_ERR' and
+			self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN)):
+			return 'GripperError'
+			
+		elif (userdata.systemStatus is 'VACU_ERR' and
+			self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, VACUUM_OFF) and
+			self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN, GRIPPER_OPEN)):	
+			return 'VacuumError'
+			
+		elif userdata.systemStatus is 'CUTT_ERR':	
+			return 'CutterError'
 		
-		@return 'MoveOK' when the move was successful, 'MoveError' otherwise
-		'''
-		# TODO: This state should be executed when something goes wrong, but this needs to be discussed
-		rospy.loginfo('Executing state MoveToStart')
-		if self.moveArmTo(userdata.start):
-			return 'MoveOK'
 		else:
-			return 'MoveError'
+			return 'ReleaseError'
+		
