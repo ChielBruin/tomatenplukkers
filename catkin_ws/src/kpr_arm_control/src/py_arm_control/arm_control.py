@@ -87,7 +87,7 @@ def createStateMachine():
 											'VacuumError':'VACU_ERR',
 											'CutterError':'CUTT_ERR',
 											'ReleaseError':'ERROR'},
-							   remapping={	'systemStatus':'status',
+							   remapping={'systemStatus':'status',
 											'result':'result'})
 	return sm
 
