@@ -52,16 +52,16 @@ class MoveToCucumber(smach.State):
 			pose.position.y = pose.position.y + 0.1
 			res = self.moveArmTo(pose)
 			if res is MoveStatus.PLAN_ERROR:
-				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning straight the movement to the produce')
+				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning grasping movement towards the produce')
 				return 'MoveError'
 			elif res is MoveStatus.MOVE_OK:
 				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 				return 'MoveOK'
 			else:
-				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving straight to to the target')
+				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving straight to the target')
 				return 'MoveError'
 		else:
-			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving to the target grasp start position')
+			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving to the grasp start position')
 			return 'MoveError'
 
 class CloseGripper(smach.State):
