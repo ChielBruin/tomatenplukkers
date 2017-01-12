@@ -41,7 +41,6 @@ class MoveToCucumber(smach.State):
 		@return 'MoveOK' when the move was successful, 'MoveError' otherwise
 		'''
 		rospy.loginfo('Executing state MoveToCucumber')
-<<<<<<< HEAD
 		q = tf.transformations.quaternion_from_euler(0, 0, .5*3.14)		
 		pose = Pose(userdata.data.cucumber.stem_position, Quaternion(q[0], q[1], q[2], q[3]))
 		pose.position.y = pose.position.y - 0.1
