@@ -95,7 +95,7 @@ def moveArmTo(pose_target):
 	'''
 	Plan the movement to the specified position and move the arm.
 
-	@param pose_target: The Pose of the goal posisiton
+	@param pose_target: The Pose of the goal position
 	@return Tuple (a, b) 
 		a: True when the move planning succeeded, False otherwise
 		b: True when the move succeeded, False otherwise
