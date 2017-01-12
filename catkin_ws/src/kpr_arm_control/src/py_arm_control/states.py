@@ -3,6 +3,7 @@
 import rospy
 import smach
 import smach_ros
+import tf
 from geometry_msgs.msg import Quaternion, Pose
 from cucumber_msgs.msg import HarvestStatus
 
@@ -40,17 +41,27 @@ class MoveToCucumber(smach.State):
 		@return 'MoveOK' when the move was successful, 'MoveError' otherwise
 		'''
 		rospy.loginfo('Executing state MoveToCucumber')
-		pose = Pose(userdata.data.cucumber.stem_position, Quaternion(0,0,0,1))
-		# TODO: Make the last section of movement straight towards the produce
+		q = tf.transformations.quaternion_from_euler(0, 0, .5*3.14)		
+		pose = Pose(userdata.data.cucumber.stem_position, Quaternion(q[0], q[1], q[2], q[3]))
+		pose.position.y = pose.position.y - 0.1
 		res = self.moveArmTo(pose)
 		if res is MoveStatus.PLAN_ERROR:
-			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning the movement')
+			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning the movement to the grasp start position')
 			return 'MoveError'
 		elif res is MoveStatus.MOVE_OK:
-			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
-			return 'MoveOK'
+			pose.position.y = pose.position.y + 0.1
+			res = self.moveArmTo(pose)
+			if res is MoveStatus.PLAN_ERROR:
+				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning grasping movement towards the produce')
+				return 'MoveError'
+			elif res is MoveStatus.MOVE_OK:
+				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+				return 'MoveOK'
+			else:
+				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving straight to the target')
+				return 'MoveError'
 		else:
-			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving to the target')
+			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving to the grasp start position')
 			return 'MoveError'
 
 class CloseGripper(smach.State):
@@ -99,7 +110,9 @@ class RepositionGripper(smach.State):
 		@return 'Repositioned' when successful, 'RepositionFailed' otherwise
 		'''
 		rospy.loginfo('Executing state RepositionGripper')
-		pose = self.group.get_current_pose().pose	# TODO: Calculate the new position
+		
+		pose = self.group.get_current_pose().pose
+		pose.position.y = pose.position.y - 0.1 # Move 10cm back
 		if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
 			return 'Repositioned'
 		else:
@@ -151,12 +164,36 @@ class Tilt(smach.State):
 		@return 'TiltOK' when successful, 'TiltError' otherwise
 		'''
 		rospy.loginfo('Executing state Tilt')
-		pose = self.group.get_current_pose().pose	# TODO: Calculate the new position
+		
+		pose = self.rotate(self.group.get_current_pose().pose, -.25) # ~15 degrees
+		
 		if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
-			return 'TiltOK'
-		else:
-			return 'TiltError'
-			
+			pose = self.rotate(self.group.get_current_pose().pose, 25)
+			if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
+				return 'TiltOK'
+		return 'TiltError'
+	
+	def rotate(self, pose, angle):
+		'''
+		Calculate the new pose after applying a rotation to the old pose.
+		
+		@param pose: The current pose
+		@param angle: The angle in radians that it must turn.
+		@return: The new pose
+		'''
+		o = pose.orientation
+		orientation = (o.x, o.y, o.z, o.w)
+		
+		rotation = tf.transformations.quaternion_from_euler(0, angle, 0)
+		o = tf.transformations.quaternion_multiply(orientation, rotation)
+		
+		pose.orientation.x = o[0]
+		pose.orientation.y = o[1]
+		pose.orientation.z = o[2]
+		pose.orientation.w = o[3]
+		
+		return pose
+		
 class Cut(smach.State):
 	'''
 	State representing the cutting of the stem of the cucumber.
