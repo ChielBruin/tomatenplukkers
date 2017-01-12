@@ -12,6 +12,7 @@ from moveit_msgs.msg import AttachedCollisionObject
 from ur_msgs.msg import IOStates
 from ur_msgs.srv import SetIO, SetIORequest
 
+from enum import MoveStatus
 import states as state
 import sceneObjects as sceneObj
 
@@ -96,17 +97,18 @@ def moveArmTo(pose_target):
 	Plan the movement to the specified position and move the arm.
 
 	@param pose_target: The Pose of the goal position
-	@return Tuple (a, b) 
-		a: True when the move planning succeeded, False otherwise
-		b: True when the move succeeded, False otherwise
+	@return an enum value from MoveStatus corresponding to the success
 	'''
 	global group, robot
 	group.set_start_state_to_current_state()
 	group.clear_pose_targets()
 	group.set_pose_target(pose_target)
 	if not group.plan():
-		return (False, False)
-	return (True, group.go(wait=True))
+		return MoveStatus.PLAN_ERROR
+	if group.go(wait=True):
+		return MoveStatus.MOVE_OK
+	else:
+		return MoveStatus.MOVE_ERROR
 	 
 def getCucumberCallback (req):
 	'''

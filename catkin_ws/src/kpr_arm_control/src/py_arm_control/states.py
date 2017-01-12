@@ -6,6 +6,8 @@ import smach_ros
 from geometry_msgs.msg import Quaternion, Pose
 from cucumber_msgs.msg import HarvestStatus
 
+from enums import MoveStatus
+
 # Output pins
 VACUUM_OUT = 1
 CUTTER_OUT = 2
@@ -40,11 +42,11 @@ class MoveToCucumber(smach.State):
 		rospy.loginfo('Executing state MoveToCucumber')
 		pose = Pose(userdata.data.cucumber.stem_position, Quaternion(0,0,0,1))
 		# TODO: Make the last section of movement straight towards the produce
-		(plan, move) = self.moveArmTo(pose)
-		if not plan:
+		res = self.moveArmTo(pose)
+		if res is MoveStatus.PLAN_ERROR:
 			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning the movement')
 			return 'MoveError'
-		if move:
+		elif res is MoveStatus.MOVE_OK:
 			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 			return 'MoveOK'
 		else:
@@ -98,7 +100,7 @@ class RepositionGripper(smach.State):
 		'''
 		rospy.loginfo('Executing state RepositionGripper')
 		pose = self.group.get_current_pose().pose	# TODO: Calculate the new position
-		if self.moveArmTo(pose)[1]:
+		if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
 			return 'Repositioned'
 		else:
 			return 'RepositionFailed'
@@ -150,7 +152,7 @@ class Tilt(smach.State):
 		'''
 		rospy.loginfo('Executing state Tilt')
 		pose = self.group.get_current_pose().pose	# TODO: Calculate the new position
-		if self.moveArmTo(pose)[1]:
+		if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
 			return 'TiltOK'
 		else:
 			return 'TiltError'
@@ -198,11 +200,11 @@ class MoveToDropoff(smach.State):
 		@return 'MoveOK' when the move was successful, 'MoveError' otherwise
 		'''
 		rospy.loginfo('Executing state MoveToDropoff')
-		(plan, move) = self.moveArmTo(userdata.data.dropLocation)
-		if not plan:
+		res = self.moveArmTo(userdata.data.dropLocation)
+		if res is MoveStatus.PLAN_ERROR:
 			userdata.result.moveToDropoff = HarvestStatus(success = HarvestStatus.FATAL, message = 'Error planning the movement')
 			return 'MoveError'			
-		if move:
+		elif res is MoveStatus.MOVE_OK:
 			userdata.result.moveToDropoff = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 			return 'MoveOK'
 		else:
