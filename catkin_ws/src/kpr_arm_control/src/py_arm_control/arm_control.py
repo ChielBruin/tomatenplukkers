@@ -12,6 +12,7 @@ from moveit_msgs.msg import AttachedCollisionObject
 from ur_msgs.msg import IOStates
 from ur_msgs.srv import SetIO, SetIORequest
 
+from enum import MoveStatus
 import states as state
 import sceneObjects as sceneObj
 
@@ -37,18 +38,21 @@ def createStateMachine():
 	global group
 	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACU_ERR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'])
 	sm.userdata.status = 'OK'
+	sm.userdata.result = HarvestActionResponse()
 
 	with sm:											
 		smach.StateMachine.add('MoveToCucumber', state.MoveToCucumber(moveArmTo), 
 							   transitions={'MoveOK':'CloseGripper',
 											'MoveError':'MOVE_ERR'},
-							   remapping={	'data':'request'})
+							   remapping={	'data':'request',
+											'result':'result'})
 											
 		smach.StateMachine.add('CloseGripper', state.CloseGripper(writeWithDigitalFeedback), 
 							   transitions={'GripperClosed':'VacuumGrip',
 											'GripperFail':'RepositionGripper',
 											'GripperError':'Release'},
-							   remapping={	'gripperStatus':'status'})
+							   remapping={	'gripperStatus':'status',
+											'result':'result'})
 											
 		smach.StateMachine.add('RepositionGripper', state.RepositionGripper(moveArmTo, group), 
 							   transitions={'Repositioned':'MoveToCucumber',
@@ -58,7 +62,8 @@ def createStateMachine():
 							   transitions={'VacuumCreated':'Cut',
 											'VacuumFail':'Tilt',
 											'VacuumError':'Release'},
-							   remapping={	'vacuumStatus':'status'})
+							   remapping={	'vacuumStatus':'status',
+											'result':'result'})
 											
 		smach.StateMachine.add('Tilt', state.Tilt(moveArmTo, group), 
 							   transitions={'TiltOK':'VacuumGrip',
@@ -68,12 +73,14 @@ def createStateMachine():
 							   transitions={'StemCutted':'MoveToDropoff',
 											'CutterOpenError':'ERROR',
 											'CutterCloseError':'Release'},
-							   remapping={	'cutterStatus':'status'})
+							   remapping={	'cutterStatus':'status',
+											'result':'result'})
 											
 		smach.StateMachine.add('MoveToDropoff', state.MoveToDropoff(moveArmTo), 
 							   transitions={'MoveOK':'Release',
-											'MoveError':'MOVE_ERR'},
-							   remapping={	'data':'request'})
+											'MoveError':'ERROR'},
+							   remapping={	'data':'request',
+											'result':'result'})
 											
 		smach.StateMachine.add('Release', state.Release(writeWithDigitalFeedback), 
 							   transitions={'ReleasedAll':'OK',
@@ -81,23 +88,47 @@ def createStateMachine():
 											'VacuumError':'VACU_ERR',
 											'CutterError':'CUTT_ERR',
 											'ReleaseError':'ERROR'},
-							   remapping={	'systemStatus':'status'})
+							   remapping={'systemStatus':'status',
+											'result':'result'})
 	return sm
 
 def moveArmTo(pose_target):
 	'''
 	Plan the movement to the specified position and move the arm.
 
-	@param pose_target: The Pose of the goal posisiton
-	@return True when the move succeded, False otherwise
+	@param pose_target: The Pose of the goal position
+	@return an enum value from MoveStatus corresponding to the success
 	'''
 	global group, robot
 	group.set_start_state_to_current_state()
 	group.clear_pose_targets()
 	group.set_pose_target(pose_target)
 	if not group.plan():
-		return False
-	return group.go(wait=True)
+		return MoveStatus.PLAN_ERROR
+	if group.go(wait=True):
+		return MoveStatus.MOVE_OK
+	else:
+		return MoveStatus.MOVE_ERROR
+	
+def setJointPositions(joint_states):
+	'''
+	Plan the movement to the specified joint positions and move the arm.
+
+	@param joint_states: The joint states of the goal position
+	@return an enum value from MoveStatus corresponding to the success
+	'''
+	global group, robot
+	group.set_start_state_to_current_state()
+	group.clear_pose_targets()
+	
+	group.set_joint_value_target(joint_states)
+
+	if not group.plan():
+		return MoveStatus.PLAN_ERROR
+	if group.go(wait=True):
+		return MoveStatus.MOVE_OK
+	else:
+		return MoveStatus.MOVE_ERROR
 	 
 def getCucumberCallback (req):
 	'''
@@ -109,8 +140,10 @@ def getCucumberCallback (req):
 	'''
 	global stateMachine
 	stateMachine.userdata.request = req
-	outcome = stateMachine.execute()	
-	return HarvestActionResponse(success[outcome])
+	outcome = stateMachine.execute()
+	response = stateMachine.userdata.result
+	response.status = success[outcome]
+	return response
 
 def addSceneObjects(aco_publisher):
 	'''
@@ -244,6 +277,7 @@ if __name__ == '__main__':
 	io_states_sub = setupIO()
 	stateMachine = createStateMachine()
 	rospy.loginfo("Started")
+	rospy.sleep(2)
 	addSceneObjects(aco_pub)
 	rospy.spin()
 	moveit_commander.roscpp_shutdown()

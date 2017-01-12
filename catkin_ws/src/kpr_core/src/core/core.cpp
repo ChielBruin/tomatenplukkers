@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include "cucumber_msgs/CucumberContainer.h"
+#include "cucumber_msgs/HarvestStatus.h"
 
 std::vector<CucumberContainer> queue;
 std::map<std::string, std::string> settings;
@@ -61,4 +62,23 @@ void setSettings(std::map<std::string, std::string> newSettings) {
 		return;
 	}
 	settings = newSettings;
+}
+
+/**
+ * Check if a HarvestStatus was not fatal and display any error message it contains.
+ * 
+ * @param msg: The HarvestStatus message
+ * @return True when the status was not fatal, False when it was.
+ */
+bool processResult(cucumber_msgs::HarvestStatus msg) {
+	if(msg.success != cucumber_msgs::HarvestStatus::OK) {
+		if(msg.success == cucumber_msgs::HarvestStatus::ERROR) {
+			ROS_WARN("%s", msg.message.c_str());
+			return true;
+		} else {
+			ROS_FATAL("%s", msg.message.c_str());
+			return false;
+		}
+	}
+	return true;
 }
