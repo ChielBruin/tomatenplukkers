@@ -111,6 +111,12 @@ def moveArmTo(pose_target):
 		return MoveStatus.MOVE_ERROR
 	
 def setJointPositions(joint_states):
+	'''
+	Plan the movement to the specified joint positions and move the arm.
+
+	@param joint_states: The joint states of the goal position
+	@return an enum value from MoveStatus corresponding to the success
+	'''
 	global group, robot
 	group.set_start_state_to_current_state()
 	group.clear_pose_targets()
