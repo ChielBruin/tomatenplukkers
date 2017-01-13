@@ -30,8 +30,8 @@ CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::Disp
 		return CucumberContainer(0, 0, 0, 0, -1);
 	}
 
-	int x = in.image_stem_position[0] - 516;
-	int y = in.image_stem_position[1] - 388;
+	int x = in.image_stem_position[0];
+	int y = in.image_stem_position[1];
 	float B = disparity.T;
 	float pixel_size = 4.65e-6;
 	float f = disparity.f;
@@ -44,8 +44,8 @@ CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::Disp
 
 	int d = disparity.image.data[im];
 	float Z_cam = f*B/(float)d;
-	float X_cam = x*Z_cam/f;
-	float Y_cam = y*Z_cam/f;
+	float X_cam = (x - 516)*Z_cam/f;
+	float Y_cam = (y - 388)*Z_cam/f;
 	float width = in.width*pixel_size;
 	float height = in.height*pixel_size;
 	float curvature = in.curvature;
