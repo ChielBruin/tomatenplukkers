@@ -30,8 +30,8 @@ CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::Disp
 		return CucumberContainer(0, 0, 0, 0, -1);
 	}
 
-	int x = in.image_stem_position[0];
-	int y = in.image_stem_position[1];
+	int x = in.image_stem_position[0] - 516;
+	int y = in.image_stem_position[1] - 388;
 	float B = disparity.T;
 	float pixel_size = 4.65e-6;
 	float f = disparity.f;
@@ -58,7 +58,7 @@ CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::Disp
 	Eigen::Transform<float,3,Eigen::Affine> transform = Eigen::Translation3f(translate) * Eigen::AngleAxisf(rotRad,Eigen::Vector3f(1,0,0));
 	v = transform*v;
 
-	CucumberContainer res = CucumberContainer(v[0],v[1],v[2],width, height, curvature);
+	CucumberContainer res = CucumberContainer(v[0],v[1],v[2] + .5 * width ,width, height, curvature);
 	res.setImagePosition(x,y);
 	return res;
 }
