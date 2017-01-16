@@ -161,6 +161,10 @@ def setupMoveIt():
 
 	@return A triplet containing the robot- and group commander and the planning scene
 	'''
+	rospy.loginfo("Waiting for moveit service")
+	rospy.wait_for_service('/plan_kinematic_path')
+	rospy.loginfo("Moveit service connected")
+	
 	moveit_commander.roscpp_initialize(sys.argv)
 	group = moveit_commander.MoveGroupCommander("manipulator")
 	robot = moveit_commander.RobotCommander()
