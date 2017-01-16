@@ -13,7 +13,7 @@ bool checkHarvestable(CucumberContainer c) {
 	bool weightOK = w > stof(settings["minWeight"]) && w < stof(settings["maxWeight"]);
 	bool curvatureOK;
 	if (settings["topMatching"].compare("True") == 0) {
-		curvatureOK = c.getCurvature() == -1);
+		curvatureOK = c.getCurvature() == -1;
 	} else {
 		curvatureOK = c.getCurvature() <= stof(settings["maxCurvature"]);
 	}
