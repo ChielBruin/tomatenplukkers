@@ -25,10 +25,21 @@ void imageCallback(const sensor_msgs::Image& image) {
  * Parses the detected cucumbers to a cucumber message and publishes it.
  */
 void detectionCallback(const ros_faster_rcnn::DetectionArray& msg) {
+	std::vector<ros_faster_rcnn::Detection> cucumbers;
+	std::vector<ros_faster_rcnn::Detection> tops;
+	
 	for (int i = 0; i < msg.size; i++) {
 		ros_faster_rcnn::Detection d = msg.data[i];
 		if (! checkDetection(d)) continue;
-		cucumber_pub.publish(processDetection(d).toMessage());
+		if (d.object_class.compare("Cucumber") == 0) {
+			cucumbers.push_back(d);
+		} else {
+			tops.push_back(d);
+		}
+	}
+	
+	for (ros_faster_rcnn::Detection d : cucumbers) {
+		cucumber_pub.publish(processDetection(d, tops).toMessage());
 	}
 }
 
