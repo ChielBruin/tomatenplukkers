@@ -12,7 +12,7 @@ from moveit_msgs.msg import AttachedCollisionObject
 from ur_msgs.msg import IOStates
 from ur_msgs.srv import SetIO, SetIORequest
 
-from enum import MoveStatus
+from enums import MoveStatus
 import states as state
 import sceneObjects as sceneObj
 
