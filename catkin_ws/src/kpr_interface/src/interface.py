@@ -235,8 +235,9 @@ def updateLog(root):
 		return
 	
 	for msg in LOG:
-		tmp = '{} [{}] {}'.format(getTime(msg.header.stamp), msg.file, msg.msg)
+		tmp = '{} [{}] {}'.format(getTime(msg.header.stamp), msg.file.split('/')[-1], msg.msg)
 		root.insert(END, tmp)
+		root.yview(END) 
 		if msg.level in LOG_COLORS:
 			root.itemconfig(END, {'fg': LOG_COLORS[msg.level]})		# Set the color of the entry
 		else:
