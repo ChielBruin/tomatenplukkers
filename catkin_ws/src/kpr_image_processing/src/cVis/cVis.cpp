@@ -8,12 +8,15 @@
 #define MAX_DIST 200
 #define DETECTION_TRESHOLD 0.5
 
+final std::vector<std::string> CLASSES{"cucumber", "cucumber_stem"};
+
 /**
  * Check if the detected object is valid.
  * This is done by validation of the object class and certainty of the detection.
  */
 bool checkDetection(ros_faster_rcnn::Detection det) {
-	bool name = det.object_class.compare("Cucumber") == 0 || det.object_class.compare("CucumberTop") == 0;
+	bool name = std::find(std::begin(CLASSES), std::end(CLASSES), det.object_class
+			!= std::end(CLASSES);
 	bool p = det.p > DETECTION_TRESHOLD;
 	return name && p;
 }
