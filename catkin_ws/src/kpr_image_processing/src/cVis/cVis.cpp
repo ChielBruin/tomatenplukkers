@@ -6,7 +6,7 @@
 #include <limits>
 
 #define MAX_DIST 200
-#define DETECTION_TRESHOLD 0.8
+#define DETECTION_TRESHOLD 0.5
 
 /**
  * Check if the detected object is valid.
@@ -64,7 +64,8 @@ CucumberContainer processDetection(ros_faster_rcnn::Detection det, std::vector<r
 	float curvature = -1;
 	if (top.width > 0) {
 		 curvature = calculateCurvature(top.width, det.width, det.height);
-		 y = top.x + .5 * top.width;
+		 x = top.x + .5 * top.width;
+		 y = top.y + .5 * top.height;
 	}
 	
 	CucumberContainer res = CucumberContainer(x, y, width, height, curvature);
