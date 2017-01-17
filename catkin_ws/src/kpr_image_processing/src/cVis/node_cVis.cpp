@@ -27,17 +27,17 @@ void imageCallback(const sensor_msgs::Image& image) {
 void detectionCallback(const ros_faster_rcnn::DetectionArray& msg) {
 	std::vector<ros_faster_rcnn::Detection> cucumbers;
 	std::vector<ros_faster_rcnn::Detection> tops;
-	
+
 	for (int i = 0; i < msg.size; i++) {
 		ros_faster_rcnn::Detection d = msg.data[i];
 		if (! checkDetection(d)) continue;
-		if (d.object_class.compare("Cucumber") == 0) {
+		if (d.object_class.compare("cucumber") == 0) {
 			cucumbers.push_back(d);
 		} else {
 			tops.push_back(d);
 		}
 	}
-	
+
 	for (ros_faster_rcnn::Detection d : cucumbers) {
 		cucumber_pub.publish(processDetection(d, tops).toMessage());
 	}
@@ -52,11 +52,11 @@ int main(int argc, char **argv) {
 	NodeHandle n;
 	ROS_INFO("Started");
 
-	cucumber_pub = n.advertise<cucumber_msgs::Cucumber>(SIDE + "/cucumber", 20);
+	cucumber_pub = n.advertise<cucumber_msgs::Cucumber>("stereo/cucumber", 20);
 	Subscriber image_sub = n.subscribe("/camera/left/image_rect_color", 1000, imageCallback);
 	
 	rcnn_pub = n.advertise<sensor_msgs::Image>("/rcnn/image_raw", 20);
-	Subscriber detector_sub = n.subscribe("rcnn/res/array", 1000, detectionCallback);
+	Subscriber detector_sub = n.subscribe("/rcnn/res/array", 1000, detectionCallback);
 	spin();
 	
 	ROS_INFO("Stopped");
