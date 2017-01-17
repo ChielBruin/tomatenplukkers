@@ -49,15 +49,14 @@ void detectionCallback(const ros_faster_rcnn::DetectionArray& msg) {
  */
 int main(int argc, char **argv) {
 	init(argc, argv, "cVis_" + SIDE);
+	NodeHandle n;
 	ROS_INFO("Started");
 
-	NodeHandle n;
 	cucumber_pub = n.advertise<cucumber_msgs::Cucumber>(SIDE + "/cucumber", 20);
-	Subscriber image_sub = n.subscribe(SIDE + "/image_raw", 1000, imageCallback);
+	Subscriber image_sub = n.subscribe("/camera/left/image_rect_color", 1000, imageCallback);
 	
-	rcnn_pub = n.advertise<sensor_msgs::Image>("rcnn/camera_raw", 20);
+	rcnn_pub = n.advertise<sensor_msgs::Image>("/rcnn/image_raw", 20);
 	Subscriber detector_sub = n.subscribe("rcnn/res/array", 1000, detectionCallback);
-
 	spin();
 	
 	ROS_INFO("Stopped");

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- Launch file that starts the testing nodes -->
+<launch>
+	<arg name="cpu_mode" default="false"/>
+	<arg name="cpu" if="$(arg cpu_mode)" value="--cpu "/>
+	<arg name="cpu" unless="$(arg cpu_mode)" value=" "/>
+
+	<arg name="gpu" default="0"/>
+
+	<arg name="tresh" default="0.5"/>
+
+	<arg name="prototxt"/>
+	<arg name="model"/>
+	<arg name="classes"/>
+
+	<!-- Start the fasterRCNN node, add the cpu arg if the user is in cpu mode -->
+	<node name="fasterRCNN" pkg="ros_faster_rcnn" type="simpleDetect.py"
+			args="$(arg cpu)--gpu $(arg gpu) --tresh $(arg tresh) --prototxt $(arg prototxt) --model $(arg model) --classes $(arg classes)"/>
+</launch>
