@@ -15,13 +15,14 @@ from kpr_interface.srv import GetSettings, SettingsIO
 from kpr_interface.msg import SetSetting
 from diagnostic_msgs.msg import KeyValue
 from sensor_msgs.msg import Image
+from stereo_msgs.msg import DisparityImage
 from cucumber_msgs.msg import Cucumber
 from rosgraph_msgs.msg import Log
 from ros_faster_rcnn.msg import DetectionFull
 
 settings_pub = rospy.Publisher('/settings/set', SetSetting, queue_size = 10)
 
-IMAGE = [False, None, None]
+IMAGE = [False, None, None, None]
 SETTINGS = {}
 LOG = []
 LOG_COLORS = {
@@ -133,8 +134,8 @@ def buildScreen(root):
 	vsbar.pack(side=RIGHT, fill=Y)
 	hsbar = Scrollbar(log, orient=HORIZONTAL)
 	hsbar.pack(side=BOTTOM, fill=X)
-	lbox = Listbox(log, width=50, height = 30, yscrollcommand=vsbar.set, xscrollcommand=hsbar.set)
-	lbox.pack(fill=None, expand=False)
+	lbox = Listbox(log, width=50, height = (height - 30) / 15, yscrollcommand=vsbar.set, xscrollcommand=hsbar.set)
+	lbox.pack()
 	lbox.pack_propagate(0)
 	vsbar.config(command=lbox.yview)
 	hsbar.config(command=lbox.xview)
@@ -156,13 +157,16 @@ def buildScreen(root):
 	middle.grid(column=1, row = 0)
 	
 	# Create image canvas
-	canvas = Canvas(middle, width = 500, height = 400)
+	canvas = Canvas(middle, width = 500, height = 820)
 
 	image = ImageTk.PhotoImage(PIL.Image.open(os.path.join(os.path.dirname(__file__), "logo.png")))
 	canvas.create_image(250, 200, image=image)
+	
+	dispImage = ImageTk.PhotoImage(PIL.Image.open(os.path.join(os.path.dirname(__file__), "subLogo.png")))
+	canvas.create_image(250, 620, image=dispImage)
 	canvas.pack()
 	
-	return (lbox, settings, (image, canvas))
+	return (lbox, settings, (image, dispImage, canvas))
 
 # Callback for receiving updated settings
 # msg: A SetSettings message containing the new values
@@ -178,6 +182,14 @@ def imageCallback(img, cv_bridge):
 	global IMAGE
 	IMAGE[0] = True
 	IMAGE[1] = cv_bridge.imgmsg_to_cv2(img)
+	
+# Callback for receiving new disparity images to display
+# img: The new disparity image to display
+# cv_bridge: A cv_bridge instance that is used to convert the image
+def imageCallback(img, cv_bridge):
+	global IMAGE
+	IMAGE[0] = True
+	IMAGE[3] = cv2.cvtColor(cv_bridge.imgmsg_to_cv2(img), cv2.COLOR_GRAY2RGB)
 
 # Callback for receiving a new target to display
 # img: The new target to display
@@ -210,10 +222,20 @@ def displayImage(image, canvas):
 	canvas.create_image(250,200,image=tk_img)
 	return tk_img
 	
+# Displays the disparity image.
+# image: the image to display
+# canvas: The node to display the image on
+def displayDisparityImage(image, canvas):
+	img = PIL.Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+	img = img.resize((500, 400), PIL.Image.ANTIALIAS)
+	tk_img = ImageTk.PhotoImage(img)
+	canvas.create_image(250,620,image=tk_img)
+	return tk_img
+	
 # Updates the displayed image and target.
 # root: The node to display the image on
 def updateImage(root, canvas):
-	global IMAGE, imageRef
+	global IMAGE, imageRef, disparityRef
 	root.after(500, updateImage, root, canvas)
 	if not IMAGE[0]:
 		return
@@ -222,6 +244,8 @@ def updateImage(root, canvas):
 	
 	if IMAGE[1] is not None:
 		imageRef = displayImage(IMAGE[1], canvas)
+	if IMAGE[3] is not None:
+		disparityRef = displayDisparityImage(IMAGE[3], canvas)
 	if IMAGE[2] is not None:
 		targetpos = calculateTarget(IMAGE[2])
 		displayTarget(targetpos, canvas)
@@ -261,10 +285,11 @@ if __name__ == '__main__':
 	cv_bridge = CvBridge()
 	root = Tk()
 	root.wm_title("KasPR | Interface")
-	(logRoot, settingsRoot, (imageRef, imageRoot)) = buildScreen(root)
+	(logRoot, settingsRoot, (imageRef, disparityRef, imageRoot)) = buildScreen(root)
 	
+	disparity_sub = rospy.Subscriber('/disparity', DisparityImage, lambda msg: disparityCallback(msg.image, cv_bridge))
 	image_sub = rospy.Subscriber('/rcnn/res/full', DetectionFull, lambda msg: imageCallback(msg.image, cv_bridge))
-	#image_sub = rospy.Subscriber('/rcnn/image_raw', Image, lambda msg: imageCallback(msg, cv_bridge)) # Use this to use the imageLoader.py to test
+	
 	target_sub = rospy.Subscriber('/target', Cucumber, targetCallback)
 	diagnostic_sub = rospy.Subscriber('/rosout', Log, lambda msg: LOG.append(msg))
 	settings_sub = rospy.Subscriber('/settings/update', SetSetting, settingsCallback)
