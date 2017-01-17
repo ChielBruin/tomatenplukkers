@@ -1,3 +1,5 @@
-*~
-*.pyc
+*
+!.gitignore
+!ur5_moveit_config
+!ur_description
 
