@@ -154,6 +154,7 @@ def addSceneObjects(aco_publisher):
 	global group
 	aco_publisher.publish(sceneObj.table())
 	aco_publisher.publish(sceneObj.endEffector(group))
+	aco_publisher.publish(sceneObj.roof())
 	
 def setupMoveIt():
 	'''

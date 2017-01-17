@@ -44,6 +44,31 @@ def table():
 	table.object.operation = table.object.ADD
 
 	return table
+	
+def roof():
+	'''
+	Create a roof that constrains the random movements of the robot.
+
+	@return An AttachedCollisionObject representing the roof
+	'''
+
+	roof = AttachedCollisionObject()
+	roof.link_name = "world"
+	roof.object.header.frame_id = "roof_attach"
+	roof.object.id = "roof"
+
+	roofPose = Pose()
+	roofPose.position.z = .8
+	roofPose.orientation.w = 1.0
+
+	roofBox = SolidPrimitive()
+	roofBox.type = roofBox.BOX
+	roofBox.dimensions = [1.5,1,0.025]
+
+	roof.object.primitives.append(roofBox)
+	roof.object.primitive_poses.append(roofPose)
+	
+	return roof
 
 def endEffector(group):
 	'''
