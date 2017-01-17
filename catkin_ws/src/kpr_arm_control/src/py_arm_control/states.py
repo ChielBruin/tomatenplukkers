@@ -4,7 +4,7 @@ import rospy
 import smach
 import smach_ros
 import tf
-import math
+import math, copy
 from geometry_msgs.msg import Quaternion, Pose, Point
 from cucumber_msgs.msg import HarvestStatus
 
@@ -168,11 +168,14 @@ class Tilt(smach.State):
 		'''
 		rospy.loginfo('Executing state Tilt')
 		
+		startOrientation = copy.copy(self.group.get_current_pose().pose.orientation)
+		print(startOrientation)
 		pose = self.rotate(self.group.get_current_pose().pose, -.25) # ~15 degrees
-		
+	
 		if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
-			pose = self.rotate(self.group.get_current_pose().pose, -25)
+			pose.orientation = startOrientation
 			if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
+				print(startOrientation)
 				return 'TiltOK'
 		return 'TiltError'
 	
