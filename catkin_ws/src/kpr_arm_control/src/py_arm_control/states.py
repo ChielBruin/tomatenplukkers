@@ -4,6 +4,7 @@ import rospy
 import smach
 import smach_ros
 import tf
+import math
 from geometry_msgs.msg import Quaternion, Pose, Point
 from cucumber_msgs.msg import HarvestStatus
 
@@ -41,9 +42,9 @@ class MoveToCucumber(smach.State):
 		@return 'MoveOK' when the move was successful, 'MoveError' otherwise
 		'''
 		rospy.loginfo('Executing state MoveToCucumber')
-		q = tf.transformations.quaternion_from_euler(0, 0, .5*3.14)
-		p = userdata.data.cucumber.stem_position	
-		position = Point(-p.x, -p.z, p.y)
+		q = tf.transformations.quaternion_from_euler(0, 0, .5*math.pi)
+		p = userdata.data.cucumber.stem_position
+		position = Point(-p.x, p.z, p.y)
 		pose = Pose(position, Quaternion(q[0], q[1], q[2], q[3]))
 		pose.position.y = pose.position.y - 0.1
 		res = self.moveArmTo(pose)
@@ -170,7 +171,7 @@ class Tilt(smach.State):
 		pose = self.rotate(self.group.get_current_pose().pose, -.25) # ~15 degrees
 		
 		if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
-			pose = self.rotate(self.group.get_current_pose().pose, 25)
+			pose = self.rotate(self.group.get_current_pose().pose, -25)
 			if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
 				return 'TiltOK'
 		return 'TiltError'
