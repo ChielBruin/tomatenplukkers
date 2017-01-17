@@ -134,7 +134,7 @@ def buildScreen(root):
 	vsbar.pack(side=RIGHT, fill=Y)
 	hsbar = Scrollbar(log, orient=HORIZONTAL)
 	hsbar.pack(side=BOTTOM, fill=X)
-	lbox = Listbox(log, width=50, height = (height - 30) / 15, yscrollcommand=vsbar.set, xscrollcommand=hsbar.set)
+	lbox = Listbox(log, width=80, height = (height - 30) / 18, yscrollcommand=vsbar.set, xscrollcommand=hsbar.set)
 	lbox.pack()
 	lbox.pack_propagate(0)
 	vsbar.config(command=lbox.yview)
@@ -186,7 +186,7 @@ def imageCallback(img, cv_bridge):
 # Callback for receiving new disparity images to display
 # img: The new disparity image to display
 # cv_bridge: A cv_bridge instance that is used to convert the image
-def imageCallback(img, cv_bridge):
+def disparityCallback(img, cv_bridge):
 	global IMAGE
 	IMAGE[0] = True
 	IMAGE[3] = cv2.cvtColor(cv_bridge.imgmsg_to_cv2(img), cv2.COLOR_GRAY2RGB)
