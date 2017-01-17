@@ -4,7 +4,7 @@ import rospy
 import smach
 import smach_ros
 import tf
-from geometry_msgs.msg import Quaternion, Pose
+from geometry_msgs.msg import Quaternion, Pose, Point
 from cucumber_msgs.msg import HarvestStatus
 
 from enums import MoveStatus
@@ -41,8 +41,10 @@ class MoveToCucumber(smach.State):
 		@return 'MoveOK' when the move was successful, 'MoveError' otherwise
 		'''
 		rospy.loginfo('Executing state MoveToCucumber')
-		q = tf.transformations.quaternion_from_euler(0, 0, .5*3.14)		
-		pose = Pose(userdata.data.cucumber.stem_position, Quaternion(q[0], q[1], q[2], q[3]))
+		q = tf.transformations.quaternion_from_euler(0, 0, .5*3.14)
+		p = userdata.data.cucumber.stem_position	
+		position = Point(-p.x, -p.z, p.y)
+		pose = Pose(position, Quaternion(q[0], q[1], q[2], q[3]))
 		pose.position.y = pose.position.y - 0.1
 		res = self.moveArmTo(pose)
 		if res is MoveStatus.PLAN_ERROR:
