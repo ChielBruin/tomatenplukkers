@@ -46,7 +46,9 @@ class MoveToCucumber(smach.State):
 		p = userdata.data.cucumber.stem_position
 		position = Point(p.x, p.z, p.y)
 		pose = Pose(position, Quaternion(q[0], q[1], q[2], q[3]))
-		pose.position.y = pose.position.y - 0.1
+		pose.position.y = pose.position.y - 0.1 - 0.3
+		pose.position.z = pose.position.z + 0.05
+		
 		res = self.moveArmTo(pose)
 		if res is MoveStatus.PLAN_ERROR:
 			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning the movement to the grasp start position')
