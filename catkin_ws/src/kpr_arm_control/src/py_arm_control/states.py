@@ -44,7 +44,7 @@ class MoveToCucumber(smach.State):
 		rospy.loginfo('Executing state MoveToCucumber')
 		q = tf.transformations.quaternion_from_euler(0, 0, .5*math.pi)
 		p = userdata.data.cucumber.stem_position
-		position = Point(-p.x, p.z, p.y)
+		position = Point(p.x, p.z, p.y)
 		pose = Pose(position, Quaternion(q[0], q[1], q[2], q[3]))
 		pose.position.y = pose.position.y - 0.1
 		res = self.moveArmTo(pose)
