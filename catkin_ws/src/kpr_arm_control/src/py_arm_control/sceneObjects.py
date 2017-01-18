@@ -58,7 +58,7 @@ def roof():
 	roof.object.id = "roof"
 
 	roofPose = Pose()
-	roofPose.position.z = .8
+	roofPose.position.z = .6
 	roofPose.orientation.w = 1.0
 
 	roofBox = SolidPrimitive()
