@@ -104,6 +104,7 @@ def moveArmTo(pose_target):
 	group.clear_pose_targets()
 	group.set_pose_target(pose_target)
 	if not group.plan():
+		print pose_target.position
 		return MoveStatus.PLAN_ERROR
 	if group.go(wait=True):
 		return MoveStatus.MOVE_OK
