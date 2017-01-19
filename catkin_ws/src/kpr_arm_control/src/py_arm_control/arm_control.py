@@ -41,20 +41,20 @@ def createStateMachine():
 	sm.userdata.result = HarvestActionResponse()
 
 	with sm:											
-		smach.StateMachine.add('MoveToCucumber', state.MoveToCucumber(moveArmTo), 
+		smach.StateMachine.add('MoveToCucumber', state.MoveToCucumber(moveArmTo, writeWithDigitalFeedback), 
 							   transitions={'MoveOK':'CloseGripper',
 											'MoveError':'MOVE_ERR'},
 							   remapping={	'data':'request',
 											'result':'result'})
 											
-		smach.StateMachine.add('CloseGripper', state.CloseGripper(writeWithDigitalFeedback), 
+		smach.StateMachine.add('CloseGripper', state.CloseGripper(moveArmTo, group, writeWithDigitalFeedback), 
 							   transitions={'GripperClosed':'VacuumGrip',
 											'GripperFail':'RepositionGripper',
 											'GripperError':'Release'},
 							   remapping={	'gripperStatus':'status',
 											'result':'result'})
 											
-		smach.StateMachine.add('RepositionGripper', state.RepositionGripper(moveArmTo, group), 
+		smach.StateMachine.add('RepositionGripper', state.RepositionGripper(moveArmTo, group, writeWithDigitalFeedback), 
 							   transitions={'Repositioned':'MoveToCucumber',
 											'RepositionFailed':'CloseGripper'})
 											
