@@ -87,7 +87,7 @@ class CloseGripper(smach.State):
 		self.setIO = setIO
 		smach.State.__init__(self, outcomes=['GripperClosed', 'GripperFail', 'GripperError'], 
 			input_keys=['result'], output_keys=['gripperStatus', 'result'])
-		self.tries = 0
+		self.tries = 1
 		self.maxTries = 3
 
 	def execute(self, userdata):
@@ -104,7 +104,7 @@ class CloseGripper(smach.State):
 			if self.tries < self.maxTries:
 				self.tries += 1
 				return 'GripperFail'
-			self.tries = 0
+			self.tries = 1
 			
 			
 			pose = self.group.get_current_pose().pose
@@ -152,7 +152,7 @@ class VacuumGrip(smach.State):
 		self.setIO = setIO
 		smach.State.__init__(self, outcomes=['VacuumCreated', 'VacuumFail', 'VacuumError'], 
 			input_keys=['result'], output_keys=['vacuumStatus', 'result'])
-		self.tries = 0
+		self.tries = 1
 		self.maxTries = 3
 
 	def execute(self, userdata):
@@ -169,7 +169,7 @@ class VacuumGrip(smach.State):
 			if self.tries < self.maxTries:
 				self.tries += 1
 				return 'VacuumFail'
-			self.tries = 0
+			self.tries = 1
 			userdata.result.grip = HarvestStatus(success = HarvestStatus.ERROR, message = 'Cannot create vacuum')
 			userdata.vacuumStatus = 'VACU_ERR'
 			return 'VacuumError'
@@ -298,7 +298,7 @@ class Release(smach.State):
 		# TODO: Swap these according to the dropping procedure, 
 		# this order seems fine for horizontal dropping in a crate.
 		if (userdata.systemStatus is 'OK'):
-			if (self.setIO(2, False, 2, True) and
+			if (self.setIO(2, True, 2, False) and
 				self.setIO(0, False, 0, False)):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 				return 'ReleasedAll'
@@ -322,6 +322,7 @@ class Release(smach.State):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot release the produce')
 			
 		elif userdata.systemStatus is 'CUTT_ERR':
-			userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+			self.setIO(1, False, 1, False)
+			userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot operate cutter')
 			return 'CutterError'
 		return 'ReleaseError'
