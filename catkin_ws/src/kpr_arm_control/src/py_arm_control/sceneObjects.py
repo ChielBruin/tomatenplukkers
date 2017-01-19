@@ -20,7 +20,7 @@ def table():
 	table.object.id = "table"
 
 	tablePose = Pose()
-	tablePose.position.z = -0.1/2 - HEIGHT_OFFSET
+	tablePose.position.z = -0.1/2 - HEIGHT_OFFSET - 0.26
 	tablePose.orientation.w = 1.0
 
 	tableBox = SolidPrimitive()
@@ -32,7 +32,7 @@ def table():
 
 	backpanelPose = Pose()
 	backpanelPose.position.y = -0.3
-	backpanelPose.position.z = 0.5 - HEIGHT_OFFSET
+	backpanelPose.position.z = 0.5 - HEIGHT_OFFSET - 0.26
 	backpanelPose.orientation.w = 1.0
 
 	backpanelBox = SolidPrimitive()
