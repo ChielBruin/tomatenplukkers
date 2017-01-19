@@ -295,7 +295,6 @@ class Release(smach.State):
 		one of ['GripperError', 'VacuumError', 'CutterError'] when releasing went well after the system war in the corresponding error state.
 		'''
 		rospy.loginfo('Executing state Release')
-		rospy.loginfo('%s', userdata.systemStatus)
 		# TODO: Swap these according to the dropping procedure, 
 		# this order seems fine for horizontal dropping in a crate.
 		if (userdata.systemStatus is 'OK'):
@@ -308,7 +307,6 @@ class Release(smach.State):
 				
 			
 		elif userdata.systemStatus is 'GRAB_ERR':
-			rospy.logfatal("ELLO")
 			if self.setIO(2, True, 2, False):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 				return 'GripperError'
@@ -316,7 +314,6 @@ class Release(smach.State):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
 			
 		elif userdata.systemStatus is 'VACU_ERR':
-			rospy.logfatal("HELLO")
 			if (self.setIO(0, False, 0, False) and
 				self.setIO(2, True, 2, False)):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')	
@@ -325,8 +322,6 @@ class Release(smach.State):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot release the produce')
 			
 		elif userdata.systemStatus is 'CUTT_ERR':
-			rospy.logfatal("OLLA")
 			userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 			return 'CutterError'
-		rospy.logfatal("OLLAH")
 		return 'ReleaseError'
