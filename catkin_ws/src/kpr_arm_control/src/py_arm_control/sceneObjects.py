@@ -2,8 +2,9 @@
 
 import rospy
 
-from geometry_msgs.msg import Pose
-from moveit_msgs.msg import AttachedCollisionObject
+from cucumber_msgs.msg import Cucumber
+from geometry_msgs.msg import Pose, Point, Quaternion
+from moveit_msgs.msg import AttachedCollisionObject, CollisionObject
 from shape_msgs.msg import SolidPrimitive
 
 def table():
@@ -96,3 +97,27 @@ def endEffector(group):
 	endEffector.object.operation = endEffector.object.ADD
 
 	return endEffector
+
+def cucumber(cucumber):
+	'''
+	Create a cucumber that the robot should target.
+	
+	@return A CollisionObject representing a cucumber
+	'''
+	cco = CollisionObject()
+	cco.header.frame_id = "target_cucumber"
+	cco.id = "target_cucumber"
+	
+	ccyl = SolidPrimitive()
+	ccyl.type = ccyl.CYLINDER
+	ccyl.dimensions = [cucumber.height, cucumber.width/2]
+	
+	cpos = Point(cucumber.stem_position.x, cucumber.stem_position.y, cucumber.stem_position.z)
+	crot = Quaternion(0, 0, 0, 1)
+	cpose = Pose(cpos, crot)
+	
+	cco.primitives.append(ccyl)
+	cco.primitive_poses.append(cpose)
+	cco.operation = cco.ADD
+	
+	return cco

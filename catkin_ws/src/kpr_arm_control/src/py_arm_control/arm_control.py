@@ -8,7 +8,7 @@ import smach
 import smach_ros
 from cucumber_msgs.srv import HarvestAction, HarvestActionResponse
 from geometry_msgs.msg import Pose
-from moveit_msgs.msg import AttachedCollisionObject
+from moveit_msgs.msg import AttachedCollisionObject, CollisionObject
 from ur_msgs.msg import IOStates
 from ur_msgs.srv import SetIO, SetIORequest
 
@@ -139,7 +139,10 @@ def getCucumberCallback (req):
 	@param req: The HarvestAction request sent
 	@return A HarvestActionResponse with the success codes
 	'''
-	global stateMachine
+	global stateMachine, co_pub
+	co_pub.publish(sceneObj.cucumber(req.cucumber))
+	rospy.logfatal(co_pub)
+	rospy.logfatal(sceneObj.cucumber(req.cucumber))
 	stateMachine.userdata.request = req
 	outcome = stateMachine.execute()
 	response = stateMachine.userdata.result
@@ -279,6 +282,7 @@ if __name__ == '__main__':
 	rospy.init_node('ArmControl')
 	s = rospy.Service('target/cucumber', HarvestAction, getCucumberCallback)
 	aco_pub = rospy.Publisher('attached_collision_object', AttachedCollisionObject, queue_size=10)
+	co_pub = rospy.Publisher('collision_object', CollisionObject, queue_size=10)
 	(robot, scene, group) = setupMoveIt()
 	io_states_sub = setupIO()
 	stateMachine = createStateMachine()
