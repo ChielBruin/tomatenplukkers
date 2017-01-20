@@ -123,10 +123,13 @@ class CloseGripper(smach.State):
 			
 			pose = self.group.get_current_pose().pose
 			pose.position.y = pose.position.y - 0.1 # Move 10cm back
-			#self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True)#2,True, 2, False
-			self.setIO(*ACTIONS["OpenGripper"])
-			self.moveArmTo(pose)
-			
+			#if self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True): #2,True, 2, False
+			if (self.setIO(*ACTIONS["OpenGripper"])):
+				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Successfully opened the gripper')
+				self.moveArmTo(pose)
+			else:
+				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
+				return 'GripperError'
 			
 			
 			userdata.result.grip = HarvestStatus(success = HarvestStatus.ERROR, message = 'Cannot grab the cucumber')
@@ -153,8 +156,14 @@ class RepositionGripper(smach.State):
 		
 		pose = self.group.get_current_pose().pose
 		pose.position.y = pose.position.y - 0.1 # Move 10cm back
-		#self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True)#2,True, 2, False
-		self.setIO(*ACTIONS["OpenGripper"])
+		#if self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True): #2,True, 2, False
+		if (self.setIO(*ACTIONS["OpenGripper"])):
+				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Successfully opened the gripper')
+				self.moveArmTo(pose)
+			else:
+				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
+				return 'GripperError'
+				
 		if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
 			return 'Repositioned'
 		else:
@@ -348,7 +357,7 @@ class Release(smach.State):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot release the produce')
 			
 		elif userdata.systemStatus is 'CUTT_ERR':
-			#self.setIO(CUTTER_OUT, CUTTER_OPEN, CUTTER_IN_OPENED, True) #1, False, 1, False
+			#if self.setIO(CUTTER_OUT, CUTTER_OPEN, CUTTER_IN_OPENED, True) #1, False, 1, False
 			if (self.setIO(*ACTIONS["OpenCutter"])):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the cutter')
 				return 'CutterError'
