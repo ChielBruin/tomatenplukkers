@@ -56,7 +56,8 @@ def createStateMachine():
 											
 		smach.StateMachine.add('RepositionGripper', state.RepositionGripper(moveArmTo, group, writeWithDigitalFeedback), 
 							   transitions={'Repositioned':'MoveToCucumber',
-											'RepositionFailed':'CloseGripper'})
+											'RepositionFailed':'CloseGripper',
+											'GripperError':'GRAB_ERR'})
 											
 		smach.StateMachine.add('VacuumGrip', state.VacuumGrip(writeWithDigitalFeedback), 
 							   transitions={'VacuumCreated':'Cut',

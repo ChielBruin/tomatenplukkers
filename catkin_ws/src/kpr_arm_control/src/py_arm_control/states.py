@@ -34,7 +34,7 @@ ACTIONS = {
 	"TurnVacuumOn" : (VACUUM_IN, VACUUM_ON, VACUUM_OUT, True),
 	"TurnVacuumOff" : (VACUUM_IN, VACUUM_OFF, VACUUM_OUT, False),
 	"OpenCutter" : (CUTTER_OUT, CUTTER_OPEN, CUTTER_IN_OPENED, True),
-	"CloseCutter" : (CUTTER_OUT, CUTTER_CLOSE, CUTTER_IN_CLOSED True),
+	"CloseCutter" : (CUTTER_OUT, CUTTER_CLOSE, CUTTER_IN_CLOSED, True),
 	"CloseGripper" : (GRIPPER_OUT, GRIPPER_CLOSE, GRIPPER_IN_CLOSED, True),
 	"OpenGripper" : (GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True),
 }
@@ -68,7 +68,7 @@ class MoveToCucumber(smach.State):
 			return 'MoveError'
 		elif res is MoveStatus.MOVE_OK:
 			
-			
+			# TODO missing if here
 			#print(self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True))
 			print(self.setIO(*ACTIONS["OpenGripper"]))
 			
@@ -126,6 +126,7 @@ class CloseGripper(smach.State):
 			#if self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True): #2,True, 2, False
 			if (self.setIO(*ACTIONS["OpenGripper"])):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Successfully opened the gripper')
+				# TODO missing if here
 				self.moveArmTo(pose)
 			else:
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
@@ -144,7 +145,8 @@ class RepositionGripper(smach.State):
 		self.setIO = setIO
 		self.moveArmTo = moveArmTo
 		self.group = group
-		smach.State.__init__(self, outcomes=['Repositioned', 'RepositionFailed'])
+		smach.State.__init__(self, outcomes=['Repositioned', 'RepositionFailed', 'GripperError'], 
+			input_keys=['result'], output_keys=['gripperStatus', 'result'])
 
 	def execute(self, userdata):
 		'''
@@ -158,16 +160,15 @@ class RepositionGripper(smach.State):
 		pose.position.y = pose.position.y - 0.1 # Move 10cm back
 		#if self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True): #2,True, 2, False
 		if (self.setIO(*ACTIONS["OpenGripper"])):
-				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Successfully opened the gripper')
-				self.moveArmTo(pose)
+			userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Successfully opened the gripper')
+			
+			if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
+				return 'Repositioned'
 			else:
-				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
-				return 'GripperError'
-				
-		if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
-			return 'Repositioned'
+				return 'RepositionFailed'
 		else:
-			return 'RepositionFailed'
+			userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
+			return 'GripperError'
 
 class VacuumGrip(smach.State):
 	'''
@@ -327,7 +328,7 @@ class Release(smach.State):
 		# this order seems fine for horizontal dropping in a crate.
 		if (userdata.systemStatus is 'OK'):
 			#if (self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True):#2, True, 4, True
-			if (self.setIO(*ACTIONS["OpenGripper"]):
+			if self.setIO(*ACTIONS["OpenGripper"]):
 				#if (self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, False)):#0, False, 0, False
 				if (self.setIO(*ACTIONS["TurnVacuumOff"])):
 					userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
