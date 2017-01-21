@@ -99,6 +99,30 @@
       </xacro:cylinder_inertial>
     </link>
 
+	<link name="end_effector" >
+		<visual>
+			<geometry>
+				<box size="0.075 0.075 0.12"/>
+			</geometry>
+			<origin rpy="0 0 0" xyz="0 0 0.06"/>
+			<material name="White">
+			  <color rgba="1 1 1 1"/>
+			</material>
+		</visual>
+		<collision>
+			<geometry>
+				<box size="0.075 0.075 0.12"/>
+			</geometry>
+			<origin rpy="0 0 0" xyz="0 0 0.06"/>
+		</collision>
+	</link>
+
+	<joint name="end_effector_joint" type="fixed">
+	<parent link="${prefix}tool0"/>
+	<child link="end_effector"/>
+	<origin rpy="0.0 0.0 0.0" xyz="0 0 0"/>
+	</joint>
+	  
 	<link name="bumblebee" >
 		<visual>
 			<geometry>
