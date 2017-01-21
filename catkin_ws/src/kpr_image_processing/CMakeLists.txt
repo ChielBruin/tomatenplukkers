@@ -64,6 +64,9 @@ add_dependencies(IdCB
 catkin_install_python(PROGRAMS src/disparityFixer.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+catkin_install_python(PROGRAMS src/pointcloudFlowControl.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 #############
 ## Install ##
 #############
