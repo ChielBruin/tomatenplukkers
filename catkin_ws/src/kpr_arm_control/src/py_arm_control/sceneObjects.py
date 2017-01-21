@@ -15,8 +15,8 @@ def table():
 	HEIGHT_OFFSET = 0.004
 
 	table = AttachedCollisionObject()
-	table.link_name = "world"
-	table.object.header.frame_id = "table_attach"
+	table.link_name = "base_link"
+	table.object.header.frame_id = "/world"
 	table.object.id = "table"
 
 	tablePose = Pose()
@@ -53,8 +53,8 @@ def roof():
 	'''
 
 	roof = AttachedCollisionObject()
-	roof.link_name = "world"
-	roof.object.header.frame_id = "roof_attach"
+	roof.link_name = "base_link"
+	roof.object.header.frame_id = "world"
 	roof.object.id = "roof"
 
 	roofPose = Pose()
