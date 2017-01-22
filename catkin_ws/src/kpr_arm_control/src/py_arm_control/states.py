@@ -39,6 +39,12 @@ ACTIONS = {
 	"OpenGripper" : (GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True),
 }
 
+# Orientation of the cucumber when released
+HORIZONTAL = True
+VERTICAL = False
+
+dropOrient = VERTICAL
+
 class MoveToCucumber(smach.State):
 	'''
 	State representing the movement towards the cucumber.
@@ -68,11 +74,11 @@ class MoveToCucumber(smach.State):
 			return 'MoveError'
 		elif res is MoveStatus.MOVE_OK:
 			
-			# TODO missing if here
-			#print(self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True))
-			print(self.setIO(*ACTIONS["OpenGripper"]))
-			
-			
+			if (self.setIO(*ACTIONS["OpenGripper"])):
+				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Successfully opened the gripper')
+			else:
+				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
+				return 'GripperError'
 			
 			
 			pose.position.y = pose.position.y + 0.1
@@ -110,7 +116,6 @@ class CloseGripper(smach.State):
 		@return 'GripperClosed' when successful, 'GripperError' otherwise
 		'''
 		rospy.loginfo('Executing state CloseGripper')
-		#if self.setIO(GRIPPER_OUT, GRIPPER_CLOSE, GRIPPER_IN_CLOSED, True):#2, False, 2, True
 		if self.setIO(*ACTIONS["CloseGripper"]):
 			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 			return 'GripperClosed'
@@ -123,11 +128,13 @@ class CloseGripper(smach.State):
 			
 			pose = self.group.get_current_pose().pose
 			pose.position.y = pose.position.y - 0.1 # Move 10cm back
-			#if self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True): #2,True, 2, False
 			if (self.setIO(*ACTIONS["OpenGripper"])):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Successfully opened the gripper')
-				# TODO missing if here
-				self.moveArmTo(pose)
+				if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
+				return 'Repositioned'
+			else:
+				return 'RepositionFailed'
+
 			else:
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
 				return 'GripperError'
@@ -158,7 +165,6 @@ class RepositionGripper(smach.State):
 		
 		pose = self.group.get_current_pose().pose
 		pose.position.y = pose.position.y - 0.1 # Move 10cm back
-		#if self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True): #2,True, 2, False
 		if (self.setIO(*ACTIONS["OpenGripper"])):
 			userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Successfully opened the gripper')
 			
@@ -188,7 +194,6 @@ class VacuumGrip(smach.State):
 		@return 'VacuumCreated' when the vacuum is created succesfully, 'VacuumError' otherwise
 		'''
 		rospy.loginfo('Executing state VacuumGrip')
-		#if self.setIO(VACUUM_OUT, VACUUM_ON, VACUUM_IN, True):#0, True, 0, True
 		if self.setIO(*ACTIONS["TurnVacuumOn"]):
 			userdata.result.grip = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 			return 'VacuumCreated'
@@ -266,9 +271,7 @@ class Cut(smach.State):
 		@return 'StemCutted' when the cutting was successful, 'CutterError' otherwise
 		'''
 		rospy.loginfo('Executing state Cut')
-		#if self.setIO(CUTTER_OUT, CUTTER_CLOSE, CUTTER_IN_CLOSED, True):#1, True, 1, True
 		if self.setIO(*ACTIONS["CloseCutter"]):
-			#if self.setIO(CUTTER_OUT, CUTTER_OPEN, CUTTER_IN_OPENED, True):#1, False, 3, True
 			if self.setIO(*ACTIONS["OpenCutter"]):
 				userdata.result.cut = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 				return 'StemCutted'
@@ -324,23 +327,28 @@ class Release(smach.State):
 		one of ['GripperError', 'VacuumError', 'CutterError'] when releasing went well after the system war in the corresponding error state.
 		'''
 		rospy.loginfo('Executing state Release')
-		# TODO: Swap these according to the dropping procedure, 
-		# this order seems fine for horizontal dropping in a crate.
 		if (userdata.systemStatus is 'OK'):
-			#if (self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True):#2, True, 4, True
-			if self.setIO(*ACTIONS["OpenGripper"]):
-				#if (self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, False)):#0, False, 0, False
-				if (self.setIO(*ACTIONS["TurnVacuumOff"])):
-					userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
-					return 'ReleasedAll'
-				else:
-					userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot stop the suction, thus cannot release the produce')
-			else:
-				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
+                        if (dropOrient):                # Horizontal orientation when released
+                                if self.setIO(*ACTIONS["OpenGripper"]):
+                                        if (self.setIO(*ACTIONS["TurnVacuumOff"])):
+                                                userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+                                                return 'ReleasedAll'
+                                        else:
+                                                userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot stop the suction, thus cannot release the produce')
+                                else:
+                                        userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
+                        else:                           # Vertical orientation when released
+                                if self.setIO(*ACTIONS["TurnVacuumOff"]):
+                                        if (self.setIO(*ACTIONS["OpenGripper"])):
+                                                userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+                                                return 'ReleasedAll'
+                                        else:
+                                                userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
+                                else:
+                                        userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot stop the suction, thus cannot release the produce')
 				
 			
 		elif userdata.systemStatus is 'GRAB_ERR':
-			#if self.setIO(GRIPPER_IN, GRIPPER_OPEN, GRIPPER_IN_OPENED, True):#2, True, 2, False
 			if self.setIO(*ACTIONS["OpenGripper"]):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
 				return 'GripperError'
@@ -348,8 +356,6 @@ class Release(smach.State):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
 			
 		elif userdata.systemStatus is 'VACU_ERR':
-			#if (self.setIO(VACUUM_OUT, VACUUM_OFF, VACUUM_IN, False) and #0, False, 0, False
-			#	self.setIO(GRIPPER_OUT, GRIPPER_OPEN, GRIPPER_IN_OPENED, True)): #2, True, 2, False
 			if (self.setIO(*ACTIONS["TurnVacuumOff"]) and
 				self.setIO(*ACTIONS["OpenGripper"])):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')	
@@ -358,8 +364,7 @@ class Release(smach.State):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot release the produce')
 			
 		elif userdata.systemStatus is 'CUTT_ERR':
-			#if self.setIO(CUTTER_OUT, CUTTER_OPEN, CUTTER_IN_OPENED, True) #1, False, 1, False
-			if (self.setIO(*ACTIONS["OpenCutter"])):
+				if (self.setIO(*ACTIONS["OpenCutter"])):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the cutter')
 				return 'CutterError'
 
