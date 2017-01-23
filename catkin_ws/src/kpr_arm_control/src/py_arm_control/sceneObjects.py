@@ -15,12 +15,12 @@ def table():
 	HEIGHT_OFFSET = 0.004
 
 	table = AttachedCollisionObject()
-	table.link_name = "world"
-	table.object.header.frame_id = "table_attach"
+	table.link_name = "base_link"
+	table.object.header.frame_id = "/world"
 	table.object.id = "table"
 
 	tablePose = Pose()
-	tablePose.position.z = -0.1/2 - HEIGHT_OFFSET - 0.26
+	tablePose.position.z = -0.1/2 - HEIGHT_OFFSET #- 0.26
 	tablePose.orientation.w = 1.0
 
 	tableBox = SolidPrimitive()
@@ -53,8 +53,8 @@ def roof():
 	'''
 
 	roof = AttachedCollisionObject()
-	roof.link_name = "world"
-	roof.object.header.frame_id = "roof_attach"
+	roof.link_name = "base_link"
+	roof.object.header.frame_id = "world"
 	roof.object.id = "roof"
 
 	roofPose = Pose()
@@ -69,30 +69,3 @@ def roof():
 	roof.object.primitive_poses.append(roofPose)
 	
 	return roof
-
-def endEffector(group):
-	'''
-	Create the end effector that is connected to the robots arm.
-
-	@return An AttachedCollisionObject representing the end effector
-	'''
-	endEffector = AttachedCollisionObject()
-	endEffector.link_name = group.get_end_effector_link()
-	endEffector.object.header.frame_id = "end_effector_attach"
-	endEffector.object.id = "end_effector"
-
-	# Translates the end effector to the end of the arm.
-	# Should not be necessary but currently the built-in translation breaks.
-	# TODO: Make sure the built-in translation is used instead of this work around.
-	eePose = group.get_current_pose().pose
-	eePose.position.z -= 0.06
-
-	eeBox = SolidPrimitive()
-	eeBox.type = eeBox.BOX
-	eeBox.dimensions = [0.12, 0.075, 0.075]
-
-	endEffector.object.primitives.append(eeBox)
-	endEffector.object.primitive_poses.append(eePose)
-	endEffector.object.operation = endEffector.object.ADD
-
-	return endEffector
