@@ -101,7 +101,11 @@ stereo_msgs::DisparityImage getDisparityImage(ros::Time timestamp) {
 		} else if (time.sec < timestamp.sec) {
 			res = it->second;
 			succes = true;
-			it = disparity.erase(it);
+			if (disparity.size() > 1) {
+				it = disparity.erase(it);
+			} else {
+				it++;
+			}
 		} else {
 			break;
 		}
