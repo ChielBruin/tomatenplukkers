@@ -7,6 +7,7 @@ import tf
 import math, copy
 from geometry_msgs.msg import Quaternion, Pose, Point
 from cucumber_msgs.msg import HarvestStatus
+import sceneObjects as sceneObj
 
 from enums import MoveStatus
 
@@ -49,9 +50,11 @@ class MoveToCucumber(smach.State):
 	'''
 	State representing the movement towards the cucumber.
 	'''
-	def __init__(self, moveArmTo, setIO):
+	def __init__(self, moveArmTo, setIO, pubPlanningScene, get_planning_scene):
 		self.setIO = setIO
 		self.moveArmTo = moveArmTo
+		self.pubPlanningScene = pubPlanningScene
+		self.get_planning_scene = get_planning_scene
 		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError', 'GripperError'], input_keys=['data', 'result'], output_keys=['result'])
 
 	def execute(self, userdata):
@@ -73,15 +76,14 @@ class MoveToCucumber(smach.State):
 			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning the movement to the grasp start position')
 			return 'MoveError'
 		elif res is MoveStatus.MOVE_OK:
-			
 			if (self.setIO(*ACTIONS["OpenGripper"])):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Successfully opened the gripper')
 			else:
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
 				return 'GripperError'
 			
-			
-			pose.position.y = pose.position.y + 0.1
+			sceneObj.toggleOctomap(True, self.pubPlanningScene, self.get_planning_scene)
+			pose.position.y = pose.position.y + 0.1 + 0.05
 			res = self.moveArmTo(pose)
 			if res is MoveStatus.PLAN_ERROR:
 				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning grasping movement towards the produce')
@@ -270,8 +272,10 @@ class Cut(smach.State):
 	'''
 	State representing the cutting of the stem of the cucumber.
 	'''
-	def __init__(self, setIO):
+	def __init__(self, setIO, acoPub, group):
 		self.setIO = setIO
+		self.acoPub = acoPub
+		self.group = group
 		smach.State.__init__(self, outcomes=['StemCutted', 'CutterOpenError', 'CutterCloseError'], 
 			input_keys=['result', 'data'], output_keys=['cutterStatus', 'result'])
 		
@@ -285,6 +289,7 @@ class Cut(smach.State):
 		if self.setIO(*ACTIONS["CloseCutter"]):
 			if self.setIO(*ACTIONS["OpenCutter"]):
 				userdata.result.cut = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+				self.acoPub.publish(sceneObj.cucumber(userdata.data.cucumber, self.group.get_current_pose().pose))
 				return 'StemCutted'
 			else:
 				userdata.result.cut = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the cutter')
@@ -297,8 +302,11 @@ class MoveToDropoff(smach.State):
 	'''
 	State representing the arm movement towards the dropoff location
 	'''
-	def __init__(self, moveArmTo):
+	def __init__(self, moveArmTo, group, pubPlanningScene, get_planning_scene):
 		self.moveArmTo = moveArmTo
+		self.group = group
+		self.pubPlanningScene = pubPlanningScene
+		self.get_planning_scene = get_planning_scene
 		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'], 
 			input_keys=['result', 'data'], output_keys=['result'])
 
@@ -309,23 +317,34 @@ class MoveToDropoff(smach.State):
 		@return 'MoveOK' when the move was successful, 'MoveError' otherwise
 		'''
 		rospy.loginfo('Executing state MoveToDropoff')
-		res = self.moveArmTo(userdata.data.dropLocation)
+		pose = self.group.get_current_pose().pose
+		pose.position.y -= 0.1
+		
+		res = self.moveArmTo(pose)
 		if res is MoveStatus.PLAN_ERROR:
-			userdata.result.moveToDropoff = HarvestStatus(success = HarvestStatus.FATAL, message = 'Error planning the movement')
-			return 'MoveError'			
-		elif res is MoveStatus.MOVE_OK:
-			userdata.result.moveToDropoff = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
-			return 'MoveOK'
-		else:
-			userdata.result.moveToDropoff = HarvestStatus(success = HarvestStatus.FATAL, message = 'Error moving to the target')
+			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning the move out of the plant')
 			return 'MoveError'
+		elif res is MoveStatus.MOVE_OK:
+			sceneObj.toggleOctomap(False, self.pubPlanningScene, self.get_planning_scene)
+			pose = userdata.data.dropLocation
+			res = self.moveArmTo(pose)
+			if res is MoveStatus.PLAN_ERROR:
+				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error planning the move to the dropoff location')
+				return 'MoveError'
+			elif res is MoveStatus.MOVE_OK:
+				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+				return 'MoveOK'
+			else:
+				userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.ERROR, message = 'Error moving to dropoff')
+				return 'MoveError'
 
 class Release(smach.State):
 	'''
 	State representing the releasing of the produce from the gripper.
 	'''
-	def __init__(self, setIO):
+	def __init__(self, setIO, acoPub):
 		self.setIO = setIO
+		self.acoPub = acoPub
 		smach.State.__init__(self, outcomes=['ReleasedAll', 'GripperError', 'VacuumError', 'CutterError', 'ReleaseError'], 
 			input_keys=['systemStatus', 'result'], output_keys=['result'])
 
@@ -343,6 +362,7 @@ class Release(smach.State):
                                 if self.setIO(*ACTIONS["OpenGripper"]):
                                         if (self.setIO(*ACTIONS["TurnVacuumOff"])):
                                                 userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+                                                self.acoPub.publish(sceneObj.remCucumber())
                                                 return 'ReleasedAll'
                                         else:
                                                 userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot stop the suction, thus cannot release the produce')
@@ -352,6 +372,7 @@ class Release(smach.State):
                                 if self.setIO(*ACTIONS["TurnVacuumOff"]):
                                         if (self.setIO(*ACTIONS["OpenGripper"])):
                                                 userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+                                                self.acoPub.publish(sceneObj.remCucumber())
                                                 return 'ReleasedAll'
                                         else:
                                                 userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')

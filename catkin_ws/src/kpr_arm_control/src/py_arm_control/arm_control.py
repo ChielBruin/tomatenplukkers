@@ -8,7 +8,8 @@ import smach
 import smach_ros
 from cucumber_msgs.srv import HarvestAction, HarvestActionResponse
 from geometry_msgs.msg import Pose
-from moveit_msgs.msg import AttachedCollisionObject
+from moveit_msgs.msg import AttachedCollisionObject, PlanningScene
+from moveit_msgs.srv import GetPlanningScene
 from ur_msgs.msg import IOStates
 from ur_msgs.srv import SetIO, SetIORequest
 
@@ -283,6 +284,9 @@ if __name__ == '__main__':
 	rospy.init_node('ArmControl')
 	s = rospy.Service('target/cucumber', HarvestAction, getCucumberCallback)
 	aco_pub = rospy.Publisher('attached_collision_object', AttachedCollisionObject, queue_size=10)
+	pubPlanningScene = rospy.Publisher('planning_scene', PlanningScene)
+	rospy.wait_for_service('/get_planning_scene', 10.0)
+	get_planning_scene = rospy.ServiceProxy('/get_planning_scene', GetPlanningScene)
 	(robot, scene, group) = setupMoveIt()
 	io_states_sub = setupIO()
 	stateMachine = createStateMachine()
