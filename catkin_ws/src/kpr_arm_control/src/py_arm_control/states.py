@@ -52,7 +52,7 @@ class MoveToCucumber(smach.State):
 	def __init__(self, moveArmTo, setIO):
 		self.setIO = setIO
 		self.moveArmTo = moveArmTo
-		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError'], input_keys=['data', 'result'], output_keys=['result'])
+		smach.State.__init__(self, outcomes=['MoveOK', 'MoveError', 'GripperError'], input_keys=['data', 'result'], output_keys=['result'])
 
 	def execute(self, userdata):
 		'''
@@ -104,7 +104,7 @@ class CloseGripper(smach.State):
 		self.moveArmTo = moveArmTo
 		self.group = group
 		self.setIO = setIO
-		smach.State.__init__(self, outcomes=['GripperClosed', 'GripperFail', 'GripperError'], 
+		smach.State.__init__(self, outcomes=['GripperClosed', 'GripperFail', 'GripperError', 'RepositionFailed'], 
 			input_keys=['result'], output_keys=['gripperStatus', 'result'])
 		self.tries = 1
 		self.maxTries = 3
@@ -118,6 +118,7 @@ class CloseGripper(smach.State):
 		rospy.loginfo('Executing state CloseGripper')
 		if self.setIO(*ACTIONS["CloseGripper"]):
 			userdata.result.moveToTarget = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+			self.tries = 1
 			return 'GripperClosed'
 		else:
 			if self.tries < self.maxTries:
@@ -131,9 +132,9 @@ class CloseGripper(smach.State):
 			if (self.setIO(*ACTIONS["OpenGripper"])):
 				userdata.result.release = HarvestStatus(success = HarvestStatus.OK, message = 'Successfully opened the gripper')
 				if self.moveArmTo(pose) is MoveStatus.MOVE_OK:
-				return 'Repositioned'
-			else:
-				return 'RepositionFailed'
+					return 'GripperError'
+				else:
+					return 'RepositionFailed'
 
 			else:
 				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the gripper')
@@ -180,9 +181,11 @@ class VacuumGrip(smach.State):
 	'''
 	State representing the gripping of the cucumber using the vacuum suction cup.
 	'''
-	def __init__(self, setIO):
+	def __init__(self, setIO, moveArmTo, group):
 		self.setIO = setIO
-		smach.State.__init__(self, outcomes=['VacuumCreated', 'VacuumFail', 'VacuumError'], 
+		self.moveArmTo = moveArmTo
+		self.group = group
+		smach.State.__init__(self, outcomes=['VacuumCreated', 'VacuumFail', 'VacuumError', 'MoveError'], 
 			input_keys=['result'], output_keys=['vacuumStatus', 'result'])
 		self.tries = 1
 		self.maxTries = 3
@@ -196,14 +199,22 @@ class VacuumGrip(smach.State):
 		rospy.loginfo('Executing state VacuumGrip')
 		if self.setIO(*ACTIONS["TurnVacuumOn"]):
 			userdata.result.grip = HarvestStatus(success = HarvestStatus.OK, message = 'Success')
+			self.tries = 1
 			return 'VacuumCreated'
 		else:
 			if self.tries < self.maxTries:
 				self.tries += 1
 				return 'VacuumFail'
 			self.tries = 1
+				
 			userdata.result.grip = HarvestStatus(success = HarvestStatus.ERROR, message = 'Cannot create vacuum')
 			userdata.vacuumStatus = 'VACU_ERR'
+			
+			pose = self.group.get_current_pose().pose
+			pose.position.y = pose.position.y - 0.1 # Move 10cm back
+			if not self.moveArmTo(pose) is MoveStatus.MOVE_OK:
+				return 'MoveError'
+			
 			return 'VacuumError'
 
 class Tilt(smach.State):
@@ -262,7 +273,7 @@ class Cut(smach.State):
 	def __init__(self, setIO):
 		self.setIO = setIO
 		smach.State.__init__(self, outcomes=['StemCutted', 'CutterOpenError', 'CutterCloseError'], 
-			input_keys=['result'], output_keys=['cutterStatus', 'result'])
+			input_keys=['result', 'data'], output_keys=['cutterStatus', 'result'])
 		
 	def execute(self, userdata):
 		'''
@@ -365,7 +376,6 @@ class Release(smach.State):
 			
 		elif userdata.systemStatus is 'CUTT_ERR':
 				if (self.setIO(*ACTIONS["OpenCutter"])):
-				userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the cutter')
-				return 'CutterError'
-
+					userdata.result.release = HarvestStatus(success = HarvestStatus.FATAL, message = 'Cannot open the cutter')
+					return 'CutterError'
 		return 'ReleaseError'
