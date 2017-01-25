@@ -1,6 +1,6 @@
 sensors:
   - sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
-    point_cloud_topic: /camera/points2
+    point_cloud_topic: /points2
     #//TODO enter correct values
     max_range: 1.0
     point_subsample: 1
