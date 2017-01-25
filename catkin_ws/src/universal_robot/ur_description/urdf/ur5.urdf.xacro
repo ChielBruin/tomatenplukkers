@@ -102,18 +102,18 @@
 	<link name="end_effector" >
 		<visual>
 			<geometry>
-				<box size="0.075 0.075 0.12"/>
+				<box size="0.1 0.1 0.18"/>
 			</geometry>
-			<origin rpy="0 0 0" xyz="0 0 0.06"/>
+			<origin rpy="0 0 0" xyz="0 0.015 0.09"/>
 			<material name="White">
 			  <color rgba="1 1 1 1"/>
 			</material>
 		</visual>
 		<collision>
 			<geometry>
-				<box size="0.075 0.075 0.12"/>
+				<box size="0.1 0.1 0.18"/>
 			</geometry>
-			<origin rpy="0 0 0" xyz="0 0 0.06"/>
+			<origin rpy="0 0 0" xyz="0 0.015 0.091"/>
 		</collision>
 	</link>
 
@@ -144,7 +144,7 @@
 	  <joint name="bumblebee_joint" type="fixed">
 		<parent link="base_link"/>
 		<child link="bumblebee"/>
-		<origin rpy="${-pi / 2 + 0.52 - 0.52} 0.0 0.0" xyz="-0.16 0.1285 0"/>
+		<origin rpy="${-pi / 2 + 0.52 - 0.69} 0.0 0.0" xyz="-0.06 0.1285 0"/>
 	  </joint>
 	  
 	  

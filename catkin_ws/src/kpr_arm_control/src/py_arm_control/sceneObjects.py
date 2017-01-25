@@ -20,6 +20,7 @@ def table():
 	table.object.id = "table"
 
 	tablePose = Pose()
+	tablePose.position.x -= 0.5
 	tablePose.position.z = -0.1/2 - HEIGHT_OFFSET #- 0.26
 	tablePose.orientation.w = 1.0
 
@@ -31,7 +32,7 @@ def table():
 	table.object.primitive_poses.append(tablePose)
 
 	backpanelPose = Pose()
-	backpanelPose.position.y = -0.3
+	backpanelPose.position.y = -0.5
 	backpanelPose.position.z = 0.5 - HEIGHT_OFFSET - 0.26
 	backpanelPose.orientation.w = 1.0
 
