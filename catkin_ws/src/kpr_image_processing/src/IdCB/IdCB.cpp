@@ -53,8 +53,7 @@ CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::Disp
 	Eigen::Vector4f v(X_cam,Y_cam,Z_cam,1);
 	
  	//translation and rotation degree
-	//Eigen::Vector3f translate(-0.16,0,0.1285);
-	Eigen::Vector3f translate(-0.16, 0.2, 0.1285); // Temp fix for the height issues
+	Eigen::Vector3f translate(-0.16,0,0.1285);
 	float rotDeg = 30;
 	
 	float rotRad = rotDeg*M_PI/180.0;
