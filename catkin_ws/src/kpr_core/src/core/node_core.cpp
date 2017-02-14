@@ -10,7 +10,8 @@
 #include "kpr_interface/SetSetting.h"
 #include "diagnostic_msgs/KeyValue.h"
 
-#define CRATE_POSITION geometry_msgs::Pose()
+//#define CRATE_POSITION geometry_msgs::Point(-0.465, 0.11, 0.228)
+//#define CRATE_ORIENTATION geometry_msgs::Quaternion(-0.655, -0.161,  0.667,  0.316)
 
 using namespace ros;
 using namespace std;
@@ -83,7 +84,22 @@ int main(int argc, char **argv) {
 		target_pub.publish(msg);
 		cucumber_msgs::HarvestAction srv;
 		srv.request.cucumber = msg;
-		srv.request.dropLocation = CRATE_POSITION;
+		//srv.request.dropLocation = geometry_msgs::Pose();
+		
+		geometry_msgs::Point point = geometry_msgs::Point();
+		point.x = 0.465;
+		point.y = 0.11;
+		point.z = 0.228;
+		
+		
+		geometry_msgs::Quaternion q = geometry_msgs::Quaternion();
+		q.x = -0;
+		q.y = -0;
+		q.z = 0.22;
+		q.w = 0.316;
+		
+		srv.request.dropLocation.position = point;
+		srv.request.dropLocation.orientation = q;
 		
 		if (!arm_controller.call(srv)) {
 			ROS_FATAL("Error while calling service 'HarvestAction', the arm_control might have crashed");

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- Launch file that starts the image processing nodes -->
 <launch>
-	<node name="CVis" pkg="kpr_image_processing" type="cVis"/>
+	<node name="cVis" pkg="kpr_image_processing" type="cVis"/>
 	<node name="IdCB" pkg="kpr_image_processing" type="IdCB"/>
 	<node name="disparityFixer" pkg="kpr_image_processing" type="disparityFixer.py"/>
 </launch>

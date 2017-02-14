@@ -38,7 +38,7 @@ float calculateCurvature(float topWidth, float cucumberWidth, float cucumberHeig
  */
 ros_faster_rcnn::Detection findClosestTop(float x, float y, std::vector<ros_faster_rcnn::Detection> tops) {
 	ros_faster_rcnn::Detection closest = ros_faster_rcnn::Detection();
-	closest.width = -1; 	// Flag value for no closest found
+	closest.width = 0; 	// Flag value for no closest found
 	float min_dist = std::numeric_limits<float>::max();
 	
 	for (ros_faster_rcnn::Detection d : tops) {

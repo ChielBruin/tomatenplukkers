@@ -51,12 +51,17 @@ CucumberContainer to3D(cucumber_msgs::Cucumber in, int camera, stereo_msgs::Disp
 	float curvature = in.curvature;
 
 	Eigen::Vector4f v(X_cam,Y_cam,Z_cam,1);
- 	//TODO translation and rotation degree
-	Eigen::Vector3f translate(6e-2,2e-2,47.4e-3-3.8e-3+14e-2);
-	float rotDeg = 30;
+	
+ 	//translation and rotation degree
+	Eigen::Vector3f translate(-0.1,0,0.18);
+	float rotDeg = 28.8;
+	
+	//Eigen::Vector3f translate(-0.17,0,0.12);
+	//float rotDeg = 28.8;
+	
 	float rotRad = rotDeg*M_PI/180.0;
 	Eigen::Transform<float,3,Eigen::Affine> transform = Eigen::Translation3f(translate) * Eigen::AngleAxisf(-rotRad,Eigen::Vector3f(1,0,0));
-	v = transform*v;	
+	v = transform*v;
 
 	CucumberContainer res = CucumberContainer(v[0],v[1],v[2] + .5 * width ,width, height, curvature);
 	res.setImagePosition(x,y);
@@ -88,14 +93,21 @@ stereo_msgs::DisparityImage getDisparityImage(ros::Time timestamp) {
 	
 	for (auto it = disparity.cbegin(); it != disparity.cend();) {
 		ros::Time time = it->first;
+		
 		if (time.sec == timestamp.sec && time.nsec == timestamp.nsec) {
 			res = it->second;
 			succes = true;
 			break;
-		}else if (time.sec < timestamp.sec) {
-			it = disparity.erase(it);
+		} else if (time.sec < timestamp.sec) {
+			res = it->second;
+			succes = true;
+			if (disparity.size() > 1) {
+				it = disparity.erase(it);
+			} else {
+				it++;
+			}
 		} else {
-			++it;
+			break;
 		}
 	}
 	if (!succes) {

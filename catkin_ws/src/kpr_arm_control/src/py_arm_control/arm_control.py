@@ -8,7 +8,8 @@ import smach
 import smach_ros
 from cucumber_msgs.srv import HarvestAction, HarvestActionResponse
 from geometry_msgs.msg import Pose
-from moveit_msgs.msg import AttachedCollisionObject
+from moveit_msgs.msg import AttachedCollisionObject, PlanningScene
+from moveit_msgs.srv import GetPlanningScene
 from ur_msgs.msg import IOStates
 from ur_msgs.srv import SetIO, SetIORequest
 
@@ -35,33 +36,37 @@ def createStateMachine():
 
 	@return a state machine object
 	'''
-	global group
+	global group, aco_pub, pubPlanningScene, get_planning_scene
 	sm = smach.StateMachine(outcomes=['OK', 'GRAB_ERR', 'VACU_ERR', 'CUTT_ERR', 'MOVE_ERR', 'ERROR'])
 	sm.userdata.status = 'OK'
 	sm.userdata.result = HarvestActionResponse()
 
 	with sm:											
-		smach.StateMachine.add('MoveToCucumber', state.MoveToCucumber(moveArmTo), 
+		smach.StateMachine.add('MoveToCucumber', state.MoveToCucumber(moveArmTo, writeWithDigitalFeedback, pubPlanningScene, get_planning_scene), 
 							   transitions={'MoveOK':'CloseGripper',
-											'MoveError':'MOVE_ERR'},
+											'MoveError':'MOVE_ERR',
+											'GripperError': 'GRAB_ERR'},
 							   remapping={	'data':'request',
 											'result':'result'})
 											
-		smach.StateMachine.add('CloseGripper', state.CloseGripper(writeWithDigitalFeedback), 
+		smach.StateMachine.add('CloseGripper', state.CloseGripper(moveArmTo, group, writeWithDigitalFeedback), 
 							   transitions={'GripperClosed':'VacuumGrip',
 											'GripperFail':'RepositionGripper',
-											'GripperError':'Release'},
+											'GripperError':'Release',
+											'RepositionFailed' : 'MOVE_ERR'},
 							   remapping={	'gripperStatus':'status',
 											'result':'result'})
 											
-		smach.StateMachine.add('RepositionGripper', state.RepositionGripper(moveArmTo, group), 
+		smach.StateMachine.add('RepositionGripper', state.RepositionGripper(moveArmTo, group, writeWithDigitalFeedback), 
 							   transitions={'Repositioned':'MoveToCucumber',
-											'RepositionFailed':'CloseGripper'})
+											'RepositionFailed':'CloseGripper',
+											'GripperError':'GRAB_ERR'})
 											
-		smach.StateMachine.add('VacuumGrip', state.VacuumGrip(writeWithDigitalFeedback), 
+		smach.StateMachine.add('VacuumGrip', state.VacuumGrip(writeWithDigitalFeedback, moveArmTo, group), 
 							   transitions={'VacuumCreated':'Cut',
 											'VacuumFail':'Tilt',
-											'VacuumError':'Release'},
+											'VacuumError':'Release',
+											'MoveError':'MOVE_ERR'},
 							   remapping={	'vacuumStatus':'status',
 											'result':'result'})
 											
@@ -69,20 +74,21 @@ def createStateMachine():
 							   transitions={'TiltOK':'VacuumGrip',
 											'TiltError':'VacuumGrip'})
 											
-		smach.StateMachine.add('Cut', state.Cut(writeWithDigitalFeedback), 
+		smach.StateMachine.add('Cut', state.Cut(writeWithDigitalFeedback, aco_pub, group), 
 							   transitions={'StemCutted':'MoveToDropoff',
 											'CutterOpenError':'ERROR',
 											'CutterCloseError':'Release'},
-							   remapping={	'cutterStatus':'status',
+							   remapping={	'data':'request',
+											'cutterStatus':'status',
 											'result':'result'})
 											
-		smach.StateMachine.add('MoveToDropoff', state.MoveToDropoff(moveArmTo), 
+		smach.StateMachine.add('MoveToDropoff', state.MoveToDropoff(moveArmTo, group, pubPlanningScene, get_planning_scene), 
 							   transitions={'MoveOK':'Release',
 											'MoveError':'ERROR'},
 							   remapping={	'data':'request',
 											'result':'result'})
 											
-		smach.StateMachine.add('Release', state.Release(writeWithDigitalFeedback), 
+		smach.StateMachine.add('Release', state.Release(writeWithDigitalFeedback, aco_pub), 
 							   transitions={'ReleasedAll':'OK',
 											'GripperError':'GRAB_ERR',
 											'VacuumError':'VACU_ERR',
@@ -104,6 +110,7 @@ def moveArmTo(pose_target):
 	group.clear_pose_targets()
 	group.set_pose_target(pose_target)
 	if not group.plan():
+		print pose_target.position
 		return MoveStatus.PLAN_ERROR
 	if group.go(wait=True):
 		return MoveStatus.MOVE_OK
@@ -153,7 +160,7 @@ def addSceneObjects(aco_publisher):
 	'''
 	global group
 	aco_publisher.publish(sceneObj.table())
-	aco_publisher.publish(sceneObj.endEffector(group))
+	aco_publisher.publish(sceneObj.roof())
 	
 def setupMoveIt():
 	'''
@@ -277,6 +284,9 @@ if __name__ == '__main__':
 	rospy.init_node('ArmControl')
 	s = rospy.Service('target/cucumber', HarvestAction, getCucumberCallback)
 	aco_pub = rospy.Publisher('attached_collision_object', AttachedCollisionObject, queue_size=10)
+	pubPlanningScene = rospy.Publisher('planning_scene', PlanningScene)
+	rospy.wait_for_service('/get_planning_scene', 10.0)
+	get_planning_scene = rospy.ServiceProxy('/get_planning_scene', GetPlanningScene)
 	(robot, scene, group) = setupMoveIt()
 	io_states_sub = setupIO()
 	stateMachine = createStateMachine()

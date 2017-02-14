@@ -50,7 +50,7 @@ TEST(to3D, GoodCucumber){
 	cucumber_msgs::Cucumber msg = c.toMessage();
 	int camera = CAM_LEFT;
 	stereo_msgs::DisparityImage d = CreateDisparity(100, 0.1, 1, 1, 100, 51, 12);
-	ASSERT_TRUE(CucumberContainer(-4.231667,-2.349048,2.513621 + .5*4.65e-6 ,4.65e-6,4.65e-5,0).equals(to3D(msg, camera,d)));
+	ASSERT_TRUE(CucumberContainer(-4.45167,-2.36904,2.45852 + .5*4.65e-6 ,4.65e-6,4.65e-5,0).equals(to3D(msg, camera,d)));
 }
 
 TEST(to3D, WrongCam){
